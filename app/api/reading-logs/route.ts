@@ -79,11 +79,13 @@ export async function POST(request: Request) {
 
     if (existingLog) {
       const newPagesRead = parseInt(pagesRead)
-      const pagesDifference = newPagesRead - existingLog.pagesRead
+      // Add pages to existing log instead of replacing
+      const totalPagesRead = existingLog.pagesRead + newPagesRead
+      const pagesDifference = newPagesRead
 
       const updatedLog = await db.readingLog.update({
         where: { id: existingLog.id },
-        data: { pagesRead: newPagesRead },
+        data: { pagesRead: totalPagesRead },
       })
 
       await db.book.update({
