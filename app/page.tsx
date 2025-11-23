@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function Home() {
-  const session = await auth()
+  let session = null
+  try {
+    session = await auth()
+  } catch (error) {
+    // If auth fails (e.g., database connection issue), show homepage anyway
+    console.error("Auth error:", error)
+  }
 
   if (session) {
     redirect("/dashboard")
