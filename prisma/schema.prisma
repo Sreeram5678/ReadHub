@@ -69,6 +69,7 @@ model Book {
   author      String
   totalPages  Int
   currentPage Int          @default(0)
+  initialPages Int         @default(0)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   readingLogs ReadingLog[]
   createdAt   DateTime     @default(now())

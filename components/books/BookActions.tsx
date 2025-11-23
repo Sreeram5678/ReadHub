@@ -19,6 +19,7 @@ interface Book {
   title: string
   author: string
   totalPages: number
+  initialPages?: number
 }
 
 export function BookActions({
@@ -34,6 +35,7 @@ export function BookActions({
     title: book.title,
     author: book.author,
     totalPages: book.totalPages.toString(),
+    initialPages: (book.initialPages || 0).toString(),
   })
 
   const handleEdit = async (e: React.FormEvent) => {
@@ -138,6 +140,22 @@ export function BookActions({
                 required
                 min="1"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-initialPages">Initial Pages</Label>
+              <Input
+                id="edit-initialPages"
+                type="number"
+                value={formData.initialPages}
+                onChange={(e) =>
+                  setFormData({ ...formData, initialPages: e.target.value })
+                }
+                min="0"
+                placeholder="Pages already read before tracking"
+              />
+              <p className="text-xs text-muted-foreground">
+                Pages you had already read before starting to track progress.
+              </p>
             </div>
             <Button type="submit" disabled={loading} className="w-full">
               {loading ? "Updating..." : "Update Book"}

@@ -20,6 +20,7 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
     title: "",
     author: "",
     totalPages: "",
+    initialPages: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
         throw new Error("Failed to add book")
       }
 
-      setFormData({ title: "", author: "", totalPages: "" })
+      setFormData({ title: "", author: "", totalPages: "", initialPages: "" })
       setOpen(false)
       onBookAdded()
     } catch (error) {
@@ -95,6 +96,22 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
               required
               min="1"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="initialPages">Initial Pages (Optional)</Label>
+            <Input
+              id="initialPages"
+              type="number"
+              value={formData.initialPages}
+              onChange={(e) =>
+                setFormData({ ...formData, initialPages: e.target.value })
+              }
+              min="0"
+              placeholder="Pages already read before tracking"
+            />
+            <p className="text-xs text-muted-foreground">
+              If you've already started reading this book, enter the number of pages you've completed.
+            </p>
           </div>
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Adding..." : "Add Book"}
