@@ -27,10 +27,25 @@ export default async function DashboardPage() {
     where: { userId },
   })
 
-  const totalPagesRead = await db.readingLog.aggregate({
+  const readingLogsSum = await db.readingLog.aggregate({
     where: { userId },
     _sum: { pagesRead: true },
   })
+
+  const books = await db.book.findMany({
+    where: { userId },
+  })
+
+  const initialPagesSum = books.reduce(
+    (sum, book) => sum + ((book as any).initialPages || 0),
+    0
+  )
+
+  const totalPagesRead = {
+    _sum: {
+      pagesRead: (readingLogsSum._sum.pagesRead || 0) + initialPagesSum,
+    },
+  }
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -51,7 +66,7 @@ export default async function DashboardPage() {
     take: 5,
   })
 
-  const books = await getBooks(userId)
+  const booksForForm = await getBooks(userId)
 
   return (
     <DashboardClient
@@ -59,7 +74,7 @@ export default async function DashboardPage() {
       totalPagesRead={totalPagesRead._sum.pagesRead || 0}
       todayPages={todayPages._sum.pagesRead || 0}
       recentLogs={recentLogs}
-      books={books}
+      books={booksForForm}
       userName={session.user?.name || session.user?.email || "User"}
     />
   )

@@ -14,7 +14,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { title, author, totalPages } = body
+    const { title, author, totalPages, initialPages } = body
 
     const book = await db.book.findUnique({
       where: { id },
@@ -30,6 +30,7 @@ export async function PUT(
         title,
         author,
         totalPages: totalPages ? parseInt(totalPages) : undefined,
+        initialPages: initialPages !== undefined ? parseInt(initialPages) : undefined,
       },
     })
 

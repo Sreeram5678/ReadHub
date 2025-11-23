@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { title, author, totalPages } = body
+    const { title, author, totalPages, initialPages } = body
 
     if (!title || !author || !totalPages) {
       return NextResponse.json(
@@ -45,6 +45,7 @@ export async function POST(request: Request) {
         title,
         author,
         totalPages: parseInt(totalPages),
+        initialPages: initialPages ? parseInt(initialPages) : 0,
         userId: session.user.id,
       },
     })

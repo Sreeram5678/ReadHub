@@ -10,6 +10,7 @@ interface Book {
   title: string
   author: string
   totalPages: number
+  initialPages: number
   readingLogs: { pagesRead: number }[]
 }
 
@@ -60,7 +61,7 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map((book) => {
-            const totalPagesRead = book.readingLogs.reduce(
+            const totalPagesRead = book.initialPages + book.readingLogs.reduce(
               (sum, log) => sum + log.pagesRead,
               0
             )
