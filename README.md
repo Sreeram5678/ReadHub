@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Book Reading Tracker
+
+A Next.js application for tracking daily book reading progress and competing with friends on a leaderboard.
+
+## Features
+
+- **OAuth Authentication**: Sign in with Google or GitHub
+- **Book Management**: Add, edit, and delete books you're reading
+- **Daily Reading Logs**: Track pages read per book each day
+- **Leaderboard**: Compete with friends and see rankings (all-time, today, this week, this month)
+- **Dashboard**: View your reading statistics and recent activity
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Authentication**: NextAuth.js v5
+- **Database**: SQLite with Prisma ORM
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ installed
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository and navigate to the project directory:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd book-reading-tracker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Create `.env.local` file and add your OAuth credentials:
+   - For Google OAuth: Go to [Google Cloud Console](https://console.cloud.google.com/) and create OAuth 2.0 credentials
+   - For GitHub OAuth: Go to [GitHub Developer Settings](https://github.com/settings/developers) and create a new OAuth App
+   - Generate a secret for `NEXTAUTH_SECRET`:
+     ```bash
+     openssl rand -base64 32
+     ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5. Set up the database:
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
 
-## Learn More
+6. Run the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+7. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Sign In**: Click "Get Started" and sign in with Google or GitHub
+2. **Add Books**: Go to "My Books" and add books you're reading
+3. **Log Reading**: Use the "Log Reading" button on the dashboard to record pages read
+4. **View Leaderboard**: Check the leaderboard to see how you rank against other users
+5. **Track Progress**: View your reading statistics on the dashboard
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+book-reading-tracker/
+├── app/
+│   ├── api/              # API routes
+│   ├── (auth)/          # Public auth pages
+│   ├── (protected)/     # Protected pages
+│   └── page.tsx         # Landing page
+├── components/          # React components
+├── lib/                 # Utility functions and configurations
+├── prisma/              # Database schema and migrations
+└── public/              # Static assets
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database Schema
+
+- **User**: OAuth user information
+- **Book**: Books being tracked by users
+- **ReadingLog**: Daily reading entries
+
+## Development
+
+- Run migrations: `npx prisma migrate dev`
+- View database: `npx prisma studio`
+- Generate Prisma client: `npx prisma generate`
+
+## License
+
+MIT
