@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, Search, Lock, Globe, MessageSquare, Plus } from "lucide-react"
+import { Users, Search, Lock, Globe, MessageSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { GroupForm } from "@/components/groups/GroupForm"
 
@@ -34,16 +34,11 @@ export function GroupsList() {
   const [groups, setGroups] = useState<Group[]>([])
   const [filter, setFilter] = useState("all")
   const [search, setSearch] = useState("")
-  const [topic, setTopic] = useState("")
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [topic, setTopic] = useState("all")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchGroups()
-  }, [filter, topic])
-
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     setLoading(true)
     try {
       let url = "/api/groups?"
@@ -53,7 +48,7 @@ export function GroupsList() {
         url += "isPublic=false"
       }
       // For "my" filter, we'll filter client-side after fetching
-      if (topic) {
+      if (topic && topic !== "all") {
         url += `&topic=${encodeURIComponent(topic)}`
       }
       if (search) {
@@ -75,7 +70,11 @@ export function GroupsList() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter, topic, search])
+
+  useEffect(() => {
+    fetchGroups()
+  }, [fetchGroups])
 
   const handleSearch = () => {
     fetchGroups()
@@ -135,7 +134,6 @@ export function GroupsList() {
           <p className="text-muted-foreground mt-1">Join groups to discuss books and connect with readers</p>
         </div>
         <GroupForm onSuccess={() => {
-          setIsCreateOpen(false)
           fetchGroups()
         }} />
       </div>
@@ -169,7 +167,7 @@ export function GroupsList() {
             <SelectValue placeholder="Topic" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Topics</SelectItem>
+            <SelectItem value="all">All Topics</SelectItem>
             <SelectItem value="fiction">Fiction</SelectItem>
             <SelectItem value="non-fiction">Non-Fiction</SelectItem>
             <SelectItem value="mystery">Mystery</SelectItem>
