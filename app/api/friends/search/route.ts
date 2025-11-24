@@ -9,6 +9,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const userId = session.user.id
+
     const { searchParams } = new URL(request.url)
     const query = searchParams.get("q") || ""
 
@@ -19,7 +21,7 @@ export async function GET(request: Request) {
     const users = await db.user.findMany({
       where: {
         AND: [
-          { id: { not: session.user.id } },
+          { id: { not: userId } },
           {
             OR: [
               { name: { contains: query, mode: "insensitive" } },
@@ -40,23 +42,23 @@ export async function GET(request: Request) {
     const friendships = await db.friendship.findMany({
       where: {
         OR: [
-          { userId: session.user.id },
-          { friendId: session.user.id },
+          { userId },
+          { friendId: userId },
         ],
       },
     })
 
     const friendIds = new Set(
       friendships.map((f) =>
-        f.userId === session.user.id ? f.friendId : f.userId
+        f.userId === userId ? f.friendId : f.userId
       )
     )
 
     const usersWithStatus = users.map((user) => {
       const friendship = friendships.find(
         (f) =>
-          (f.userId === session.user.id && f.friendId === user.id) ||
-          (f.friendId === session.user.id && f.userId === user.id)
+          (f.userId === userId && f.friendId === user.id) ||
+          (f.friendId === userId && f.userId === user.id)
       )
 
       return {
