@@ -30,6 +30,7 @@ export function MobileNav({ userName }: MobileNavProps) {
               href="/dashboard"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
               onClick={() => setOpen(false)}
+              prefetch={true}
             >
               Dashboard
             </Link>
@@ -37,6 +38,7 @@ export function MobileNav({ userName }: MobileNavProps) {
               href="/books"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
               onClick={() => setOpen(false)}
+              prefetch={true}
             >
               My Books
             </Link>
@@ -44,6 +46,7 @@ export function MobileNav({ userName }: MobileNavProps) {
               href="/leaderboard"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
               onClick={() => setOpen(false)}
+              prefetch={true}
             >
               Leaderboard
             </Link>

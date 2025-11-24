@@ -34,7 +34,7 @@ export function calculateReadingStreak(logs: { date: Date }[]): number {
       streak = 1
       expectedDate = new Date(logDate)
       expectedDate.setDate(expectedDate.getDate() - 1)
-    } else if (diffDays > 1) {
+    } else {
       break
     }
   }
@@ -52,7 +52,11 @@ export function getReadingDaysInPeriod(
 
   const uniqueDates = new Set(
     logs
-      .filter((log) => new Date(log.date) >= cutoff)
+      .filter((log) => {
+        const logDate = new Date(log.date)
+        logDate.setHours(0, 0, 0, 0)
+        return logDate > cutoff
+      })
       .map((log) => {
         const date = new Date(log.date)
         date.setHours(0, 0, 0, 0)

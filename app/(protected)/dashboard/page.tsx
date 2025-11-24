@@ -3,7 +3,8 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { DashboardClient } from "@/components/dashboard/DashboardClient"
 import { calculateReadingStreak, getReadingDaysInPeriod } from "@/lib/streaks"
-import { cache } from "react"
+import { cache, Suspense } from "react"
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 
 const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
@@ -25,12 +26,10 @@ export default async function DashboardPage() {
 
   const userId = session.user.id
 
-  // Parallelize all independent queries for maximum performance
+  // Optimize: Combine book counts and fetch books data in parallel
   const [
-    totalBooks,
-    completedBooks,
+    booksData,
     readingLogsSum,
-    books,
     todayPages,
     allLogs,
     recentLogs,
@@ -38,15 +37,18 @@ export default async function DashboardPage() {
     readingGoals,
     booksForForm,
   ] = await Promise.all([
-    db.book.count({ where: { userId } }),
-    db.book.count({ where: { userId, status: "completed" } }),
+    // Fetch books once and calculate counts in memory (faster than 2 separate count queries)
+    db.book.findMany({
+      where: { userId },
+      select: { 
+        id: true,
+        initialPages: true,
+        status: true,
+      },
+    }),
     db.readingLog.aggregate({
       where: { userId },
       _sum: { pagesRead: true },
-    }),
-    db.book.findMany({
-      where: { userId },
-      select: { initialPages: true },
     }),
     (async () => {
       const today = new Date()
@@ -99,8 +101,11 @@ export default async function DashboardPage() {
     getBooks(userId),
   ])
 
-  const initialPagesSum = books.reduce(
-    (sum, book) => sum + ((book as any).initialPages || 0),
+  // Calculate counts from fetched data (faster than separate queries)
+  const totalBooks = booksData.length
+  const completedBooks = booksData.filter(b => b.status === "completed").length
+  const initialPagesSum = booksData.reduce(
+    (sum, book) => sum + (book.initialPages || 0),
     0
   )
 
@@ -112,20 +117,22 @@ export default async function DashboardPage() {
   const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30)
 
   return (
-    <DashboardClient
-      totalBooks={totalBooks}
-      completedBooks={completedBooks}
-      totalPagesRead={totalPagesRead}
-      todayPages={todayPages._sum.pagesRead || 0}
-      recentLogs={recentLogs}
-      books={booksForForm}
-      userName={session.user?.name || session.user?.email || "User"}
-      readingStreak={readingStreak}
-      daysReadThisWeek={daysReadThisWeek}
-      daysReadThisMonth={daysReadThisMonth}
-      readingTrends={last30DaysLogs}
-      readingGoals={readingGoals}
-    />
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardClient
+        totalBooks={totalBooks}
+        completedBooks={completedBooks}
+        totalPagesRead={totalPagesRead}
+        todayPages={todayPages._sum.pagesRead || 0}
+        recentLogs={recentLogs}
+        books={booksForForm}
+        userName={session.user?.name || session.user?.email || "User"}
+        readingStreak={readingStreak}
+        daysReadThisWeek={daysReadThisWeek}
+        daysReadThisMonth={daysReadThisMonth}
+        readingTrends={last30DaysLogs}
+        readingGoals={readingGoals}
+      />
+    </Suspense>
   )
 }
 
