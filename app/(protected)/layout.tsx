@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "@/components/ui/mobile-nav"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 
 export default async function ProtectedLayout({
   children,
@@ -45,9 +46,31 @@ export default async function ProtectedLayout({
             >
               Leaderboard
             </Link>
+            <Link
+              href="/friends"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Friends
+            </Link>
+            <Link
+              href="/challenges"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Challenges
+            </Link>
+            <Link
+              href="/reminders"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Reminders
+            </Link>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
+            <ThemeToggle />
             <span className="hidden sm:inline-block text-sm text-muted-foreground">
               {session.user?.name || session.user?.email}
             </span>

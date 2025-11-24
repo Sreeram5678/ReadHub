@@ -12,6 +12,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url)
     const period = searchParams.get("period") || "all-time"
+    const userId = session.user.id
 
     let startDate: Date | undefined
     const now = new Date()
@@ -33,8 +34,27 @@ export async function GET(request: Request) {
         startDate = undefined
     }
 
-    // Fetch users and their book counts first
+    // Get accepted friendships
+    const friendships = await db.friendship.findMany({
+      where: {
+        OR: [
+          { userId, status: "accepted" },
+          { friendId: userId, status: "accepted" },
+        ],
+      },
+    })
+
+    // Get friend IDs (include current user)
+    const friendIds = friendships.map((f: { userId: string; friendId: string }) =>
+      f.userId === userId ? f.friendId : f.userId
+    )
+    const userIds = [userId, ...friendIds]
+
+    // Fetch only friends and current user
     const users = await db.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
       select: {
         id: true,
         name: true,

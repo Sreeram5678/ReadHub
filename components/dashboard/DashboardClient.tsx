@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
 import { ReadingGoals } from "./ReadingGoals"
 import { ReadingTrendsChart } from "./ReadingTrendsChart"
+import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { Flame } from "lucide-react"
 import dynamic from "next/dynamic"
 
@@ -208,7 +209,10 @@ export function DashboardClient({
         />
       </div>
 
-      <ReadingTrendsChartLazy trends={readingTrends} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <ReadingTrendsChartLazy trends={readingTrends} />
+        <ReadingSessionTimer books={books} />
+      </div>
 
       <Card>
         <CardHeader>
