@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { LeaderboardPageClient } from "@/components/leaderboard/LeaderboardPageClient"
+import { Prisma } from "@prisma/client"
 
 async function getLeaderboard(period: string) {
   let startDate: Date | undefined
@@ -24,7 +25,7 @@ async function getLeaderboard(period: string) {
       startDate = undefined
   }
 
-  const where: any = {}
+  const where: Prisma.ReadingLogWhereInput = {}
   if (startDate) {
     where.date = { gte: startDate }
   }

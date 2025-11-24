@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const bookId = searchParams.get("bookId")
 
-    const where: any = { userId: session.user.id }
+    const where: Prisma.ReadingLogWhereInput = { userId: session.user.id }
     if (bookId) {
       where.bookId = bookId
     }
@@ -121,8 +122,8 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json(log, { status: 201 })
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
       return NextResponse.json(
         { error: "Reading log already exists for this date" },
         { status: 409 }
