@@ -8,6 +8,7 @@ import { Users, Lock, Globe, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { GroupForm } from "@/components/groups/GroupForm"
 import { JoinGroupButton } from "@/components/groups/JoinGroupButton"
+import { GroupFormWrapper } from "@/components/groups/GroupFormWrapper"
 
 export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -18,7 +19,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
   const userId = session.user.id
   const { id } = await params
 
-  const group = await db.group.findUnique({
+  const group = await (db as any).group.findUnique({
     where: { id },
     include: {
       creator: {
@@ -54,8 +55,8 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     redirect("/groups")
   }
 
-  const isMember = group.members.some((m) => m.userId === userId)
-  const userMember = group.members.find((m) => m.userId === userId)
+  const isMember = group.members.some((m: { userId: string }) => m.userId === userId)
+  const userMember = group.members.find((m: { userId: string }) => m.userId === userId)
   const userRole = userMember?.role || null
 
   if (!group.isPublic && !isMember) {
@@ -92,7 +93,17 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
         {(userRole === "admin" || userRole === "moderator") && (
-          <GroupForm group={group} onSuccess={() => window.location.reload()} />
+          <GroupFormWrapper
+            group={{
+              id: group.id,
+              name: group.name,
+              description: group.description ?? undefined,
+              isPublic: group.isPublic,
+              topic: group.topic ?? undefined,
+              image: group.image ?? undefined,
+            }}
+            groupId={group.id}
+          />
         )}
       </div>
 
@@ -109,7 +120,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
             <div className="text-sm">
               <div className="text-muted-foreground mb-2">Members:</div>
               <div className="space-y-1 max-h-48 overflow-y-auto">
-                {group.members.map((member) => (
+                {group.members.map((member: { id: string; userId: string; role: string; user: { id: string; name: string | null; email: string; image: string | null } }) => (
                   <div key={member.id} className="flex items-center gap-2 text-sm">
                     {member.user.image ? (
                       <img
