@@ -1,10 +1,31 @@
 "use client"
 
+import { useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
 import { ReadingGoals } from "./ReadingGoals"
 import { ReadingTrendsChart } from "./ReadingTrendsChart"
 import { Flame } from "lucide-react"
+import dynamic from "next/dynamic"
+
+// Lazy load the chart component for better initial load performance
+const ReadingTrendsChartLazy = dynamic(() => import("./ReadingTrendsChart").then(mod => ({ default: mod.ReadingTrendsChart })), {
+  loading: () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Reading Trends</CardTitle>
+        <CardDescription>Your reading activity over the last 30 days</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px] flex items-center justify-center">
+          <p className="text-muted-foreground">Loading chart...</p>
+        </div>
+      </CardContent>
+    </Card>
+  ),
+  ssr: false,
+})
 
 interface Book {
   id: string
@@ -64,24 +85,32 @@ export function DashboardClient({
   readingTrends,
   readingGoals,
 }: DashboardProps) {
+  const router = useRouter()
+  
+  // Use router.refresh() instead of window.location.reload() for faster refresh
   const refreshData = () => {
-    window.location.reload()
+    router.refresh()
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const weekStart = new Date(today)
-  weekStart.setDate(today.getDate() - today.getDay())
-  weekStart.setHours(0, 0, 0, 0)
-  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+  // Memoize date calculations to avoid recalculating on every render
+  const { weeklyPages, monthlyPages } = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const weekStart = new Date(today)
+    weekStart.setDate(today.getDate() - today.getDay())
+    weekStart.setHours(0, 0, 0, 0)
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
 
-  const weeklyPages = readingTrends
-    .filter((t) => new Date(t.date) >= weekStart)
-    .reduce((sum, t) => sum + t.pagesRead, 0)
+    const weekly = readingTrends
+      .filter((t) => new Date(t.date) >= weekStart)
+      .reduce((sum, t) => sum + t.pagesRead, 0)
 
-  const monthlyPages = readingTrends
-    .filter((t) => new Date(t.date) >= monthStart)
-    .reduce((sum, t) => sum + t.pagesRead, 0)
+    const monthly = readingTrends
+      .filter((t) => new Date(t.date) >= monthStart)
+      .reduce((sum, t) => sum + t.pagesRead, 0)
+
+    return { weeklyPages: weekly, monthlyPages: monthly }
+  }, [readingTrends])
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -179,7 +208,7 @@ export function DashboardClient({
         />
       </div>
 
-      <ReadingTrendsChart trends={readingTrends} />
+      <ReadingTrendsChartLazy trends={readingTrends} />
 
       <Card>
         <CardHeader>

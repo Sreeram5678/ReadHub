@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { AddBookForm } from "./AddBookForm"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookActions } from "./BookActions"
@@ -51,13 +51,16 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map((book) => {
-            const totalPagesRead = book.initialPages + book.readingLogs.reduce(
-              (sum, log) => sum + log.pagesRead,
-              0
-            )
-            const progress = (totalPagesRead / book.totalPages) * 100
-
-            const isCompleted = book.status === "completed"
+            // Memoize calculations per book for better performance
+            const { totalPagesRead, progress, isCompleted } = useMemo(() => {
+              const total = book.initialPages + book.readingLogs.reduce(
+                (sum, log) => sum + log.pagesRead,
+                0
+              )
+              const prog = (total / book.totalPages) * 100
+              const completed = book.status === "completed"
+              return { totalPagesRead: total, progress: prog, isCompleted: completed }
+            }, [book.initialPages, book.readingLogs, book.totalPages, book.status])
 
             return (
               <Card key={book.id} className={isCompleted ? "opacity-75" : ""}>

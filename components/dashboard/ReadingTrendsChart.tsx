@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   LineChart,
@@ -21,19 +22,22 @@ interface ReadingTrendsChartProps {
 }
 
 export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
-  const chartData = trends.reduce((acc, log) => {
-    const date = new Date(log.date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })
-    const existing = acc.find((item) => item.date === date)
-    if (existing) {
-      existing.pages += log.pagesRead
-    } else {
-      acc.push({ date, pages: log.pagesRead })
-    }
-    return acc
-  }, [] as { date: string; pages: number }[])
+  // Memoize chart data processing to avoid recalculating on every render
+  const chartData = useMemo(() => {
+    return trends.reduce((acc, log) => {
+      const date = new Date(log.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+      const existing = acc.find((item) => item.date === date)
+      if (existing) {
+        existing.pages += log.pagesRead
+      } else {
+        acc.push({ date, pages: log.pagesRead })
+      }
+      return acc
+    }, [] as { date: string; pages: number }[])
+  }, [trends])
 
   if (chartData.length === 0) {
     return (

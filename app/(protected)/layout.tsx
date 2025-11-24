@@ -24,24 +24,27 @@ export default async function ProtectedLayout({
               Book Tracker
             </Link>
             <div className="hidden md:flex gap-4">
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/books"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                My Books
-              </Link>
-              <Link
-                href="/leaderboard"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Leaderboard
-              </Link>
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/books"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              My Books
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Leaderboard
+            </Link>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">

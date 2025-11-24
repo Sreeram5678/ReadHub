@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  // Enable compression
+  compress: true,
+  // Optimize production builds
+  swcMinify: true,
 };
 
 export default nextConfig;
