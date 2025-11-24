@@ -26,7 +26,7 @@ export async function GET(
       return new Response("Group not found", { status: 404 })
     }
 
-    const isMember = group.members.some((m) => m.userId === userId)
+    const isMember = group.members.some((m: any) => m.userId === userId)
     if (!group.isPublic && !isMember) {
       return new Response("Access denied", { status: 403 })
     }

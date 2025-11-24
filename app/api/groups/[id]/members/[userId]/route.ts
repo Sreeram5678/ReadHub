@@ -26,7 +26,7 @@ export async function PUT(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const currentUserMember = group.members.find((m) => m.userId === currentUserId)
+    const currentUserMember = group.members.find((m: any) => m.userId === currentUserId)
     if (!currentUserMember || (currentUserMember.role !== "admin" && currentUserMember.role !== "moderator")) {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
     }
@@ -34,7 +34,7 @@ export async function PUT(
     const body = await request.json()
     const { role, action } = body
 
-    const targetMember = group.members.find((m) => m.userId === userId)
+    const targetMember = group.members.find((m: any) => m.userId === userId)
     if (!targetMember) {
       return NextResponse.json({ error: "User is not a member" }, { status: 404 })
     }
