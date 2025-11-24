@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Trash2, Edit } from "lucide-react"
+import { Trash2, Edit, CheckCircle2 } from "lucide-react"
 
 interface Book {
   id: string
@@ -20,6 +20,7 @@ interface Book {
   author: string
   totalPages: number
   initialPages?: number
+  status?: string
 }
 
 export function BookActions({
@@ -92,8 +93,44 @@ export function BookActions({
     }
   }
 
+  const handleMarkCompleted = async () => {
+    try {
+      const response = await fetch(`/api/books/${book.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: book.status === "completed" ? "reading" : "completed" }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update book status")
+      }
+
+      if (onBookUpdated) {
+        onBookUpdated()
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Error updating book status:", error)
+      alert("Failed to update book status. Please try again.")
+    }
+  }
+
+  const isCompleted = book.status === "completed"
+
   return (
     <div className="flex gap-1">
+      {!isCompleted && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleMarkCompleted}
+          title="Mark as completed"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      )}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8">
