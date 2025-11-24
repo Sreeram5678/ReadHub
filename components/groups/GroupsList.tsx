@@ -63,9 +63,10 @@ export function GroupsList() {
       const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
-        setGroups(data)
+        setGroups(Array.isArray(data) ? data : [])
       } else {
-        console.error("Failed to fetch groups:", response.status, response.statusText)
+        const errorData = await response.json().catch(() => ({}))
+        console.error("Failed to fetch groups:", response.status, response.statusText, errorData)
         setGroups([])
       }
     } catch (error) {

@@ -73,7 +73,11 @@ export async function GET(request: NextRequest) {
       andConditions.push({ topic: topic })
     }
 
-    const where = andConditions.length === 1 ? andConditions[0] : { AND: andConditions }
+    const where = andConditions.length === 0 
+      ? {} 
+      : andConditions.length === 1 
+        ? andConditions[0] 
+        : { AND: andConditions }
 
     console.log("Fetching groups with where clause:", JSON.stringify(where, null, 2))
     
