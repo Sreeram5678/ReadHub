@@ -4,13 +4,15 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; messageId: string } }
+  { params }: { params: Promise<{ id: string; messageId: string }> }
 ) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { messageId } = await params
 
     const body = await request.json()
     const { emoji } = body
@@ -23,7 +25,7 @@ export async function POST(
     const existingReaction = await db.groupMessageReaction.findUnique({
       where: {
         messageId_userId_emoji: {
-          messageId: params.messageId,
+          messageId: messageId,
           userId: session.user.id,
           emoji,
         },
@@ -35,7 +37,7 @@ export async function POST(
       await db.groupMessageReaction.delete({
         where: {
           messageId_userId_emoji: {
-            messageId: params.messageId,
+            messageId: messageId,
             userId: session.user.id,
             emoji,
           },
@@ -47,7 +49,7 @@ export async function POST(
     // Add reaction
     await db.groupMessageReaction.create({
       data: {
-        messageId: params.messageId,
+        messageId: messageId,
         userId: session.user.id,
         emoji,
       },

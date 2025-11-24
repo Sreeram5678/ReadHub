@@ -4,7 +4,7 @@ import { NextRequest } from "next/server"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,8 +12,10 @@ export async function GET(
       return new Response("Unauthorized", { status: 401 })
     }
 
+    const { id } = await params
+
     const group = await db.group.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         members: true,
       },
@@ -43,10 +45,11 @@ export async function GET(
         sendEvent({ type: "connected" })
 
         // Poll for new messages every 2 seconds
+        const groupId = id
         const interval = setInterval(async () => {
           try {
             const where: any = {
-              groupId: params.id,
+              groupId: groupId,
             }
 
             if (lastMessageId) {
@@ -112,7 +115,7 @@ export async function GET(
             // Also check for updated/deleted messages
             const updatedMessages = await db.groupMessage.findMany({
               where: {
-                groupId: params.id,
+                groupId: groupId,
                 updatedAt: {
                   gt: new Date(Date.now() - 5000), // Messages updated in last 5 seconds
                 },
