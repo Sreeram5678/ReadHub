@@ -15,7 +15,7 @@ export async function GET(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -57,7 +57,7 @@ export async function GET(
               where.id = { gt: lastMessageId }
             }
 
-            const newMessages = await db.groupMessage.findMany({
+            const newMessages = await (db as any).groupMessage.findMany({
               where,
               include: {
                 user: {
@@ -114,7 +114,7 @@ export async function GET(
             }
 
             // Also check for updated/deleted messages
-            const updatedMessages = await db.groupMessage.findMany({
+            const updatedMessages = await (db as any).groupMessage.findMany({
               where: {
                 groupId: groupId,
                 updatedAt: {

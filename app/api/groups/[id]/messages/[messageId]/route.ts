@@ -15,7 +15,7 @@ export async function PUT(
     const { messageId } = await params
     const userId = session.user.id
 
-    const message = await db.groupMessage.findUnique({
+    const message = await (db as any).groupMessage.findUnique({
       where: { id: messageId },
       include: {
         group: {
@@ -46,7 +46,7 @@ export async function PUT(
       return NextResponse.json({ error: "Message content is required" }, { status: 400 })
     }
 
-    const updatedMessage = await db.groupMessage.update({
+    const updatedMessage = await (db as any).groupMessage.update({
       where: { id: messageId },
       data: {
         content: content.trim(),
@@ -114,7 +114,7 @@ export async function DELETE(
     const { messageId } = await params
     const userId = session.user.id
 
-    const message = await db.groupMessage.findUnique({
+    const message = await (db as any).groupMessage.findUnique({
       where: { id: messageId },
       include: {
         group: {
@@ -138,7 +138,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
     }
 
-    await db.groupMessage.delete({
+    await (db as any).groupMessage.delete({
       where: { id: messageId },
     })
 

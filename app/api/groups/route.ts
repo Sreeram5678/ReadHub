@@ -16,33 +16,33 @@ export async function GET(request: NextRequest) {
     const topic = searchParams.get("topic")
     const userId = searchParams.get("userId") // Get groups user is member of
 
-    let where: any = {}
+    // Build where clause - keep it simple
+    const andConditions: any[] = []
 
+    // Visibility filter
     if (userId === currentUserId) {
       // Get groups where user is a member
-      where = {
+      andConditions.push({
         members: {
           some: {
             userId: currentUserId,
           },
         },
-      }
+      })
     } else if (isPublic === "true") {
-      // Get public groups
-      where.isPublic = true
+      andConditions.push({ isPublic: true })
     } else if (isPublic === "false") {
-      // Get private groups user is member of
-      where = {
+      andConditions.push({
         isPublic: false,
         members: {
           some: {
             userId: currentUserId,
           },
         },
-      }
+      })
     } else {
-      // Default: show public groups and private groups user is member of
-      where = {
+      // Default: show public groups OR private groups user is member of
+      andConditions.push({
         OR: [
           { isPublic: true },
           {
@@ -54,22 +54,30 @@ export async function GET(request: NextRequest) {
             },
           },
         ],
-      }
+      })
     }
 
+    // Add search filter
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { topic: { contains: search, mode: "insensitive" } },
-      ]
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+          { topic: { contains: search, mode: "insensitive" } },
+        ],
+      })
     }
 
+    // Add topic filter
     if (topic) {
-      where.topic = topic
+      andConditions.push({ topic: topic })
     }
 
-    const groups = await db.group.findMany({
+    const where = andConditions.length === 1 ? andConditions[0] : { AND: andConditions }
+
+    console.log("Fetching groups with where clause:", JSON.stringify(where, null, 2))
+    
+    const groups = await (db as any).group.findMany({
       where,
       include: {
         creator: {
@@ -102,12 +110,13 @@ export async function GET(request: NextRequest) {
       orderBy: {
         updatedAt: "desc",
       },
+      take: 100,
     })
 
     // Check if user is member of each group
-    const groupsWithMembership = groups.map((group) => {
-      const isMember = group.members.some((m) => m.userId === currentUserId)
-      const userRole = group.members.find((m) => m.userId === currentUserId)?.role || null
+    const groupsWithMembership = groups.map((group: any) => {
+      const isMember = group.members.some((m: any) => m.userId === currentUserId)
+      const userRole = group.members.find((m: any) => m.userId === currentUserId)?.role || null
       return {
         ...group,
         isMember,
@@ -115,10 +124,22 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    console.log(`Found ${groups.length} groups`)
     return NextResponse.json(groupsWithMembership)
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching groups:", error)
-    return NextResponse.json({ error: "Failed to fetch groups" }, { status: 500 })
+    console.error("Error details:", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+    })
+    return NextResponse.json(
+      { 
+        error: "Failed to fetch groups",
+        details: process.env.NODE_ENV === "development" ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -137,7 +158,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Group name is required" }, { status: 400 })
     }
 
-    const group = await db.group.create({
+    const group = await (db as any).group.create({
       data: {
         name: name.trim(),
         description: description?.trim() || null,

@@ -15,7 +15,7 @@ export async function GET(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         creator: {
@@ -80,7 +80,7 @@ export async function PUT(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -99,7 +99,7 @@ export async function PUT(
     const body = await request.json()
     const { name, description, isPublic, topic, image } = body
 
-    const updatedGroup = await db.group.update({
+    const updatedGroup = await (db as any).group.update({
       where: { id },
       data: {
         ...(name !== undefined && { name: name.trim() }),
@@ -160,7 +160,7 @@ export async function DELETE(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -179,7 +179,7 @@ export async function DELETE(
       }
     }
 
-    await db.group.delete({
+    await (db as any).group.delete({
       where: { id },
     })
 
