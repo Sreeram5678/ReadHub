@@ -1,14 +1,16 @@
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { GroupChat } from "@/components/groups/GroupChat"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, Lock, Globe, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { GroupForm } from "@/components/groups/GroupForm"
 import { JoinGroupButton } from "@/components/groups/JoinGroupButton"
 import { GroupFormWrapper } from "@/components/groups/GroupFormWrapper"
+import { AddMemberDialog } from "@/components/groups/AddMemberDialog"
+import { GroupActionsDropdown } from "@/components/groups/GroupActionsDropdown"
 
 export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -19,6 +21,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
   const userId = session.user.id
   const { id } = await params
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const group = await (db as any).group.findUnique({
     where: { id },
     include: {
@@ -92,25 +95,48 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
             )}
           </div>
         </div>
-        {(userRole === "admin" || userRole === "moderator") && (
-          <GroupFormWrapper
-            group={{
-              id: group.id,
-              name: group.name,
-              description: group.description ?? undefined,
-              isPublic: group.isPublic,
-              topic: group.topic ?? undefined,
-              image: group.image ?? undefined,
-            }}
-            groupId={group.id}
-          />
-        )}
+        <div className="flex items-center gap-2">
+          {(userRole === "admin" || userRole === "moderator") && (
+            <GroupFormWrapper
+              group={{
+                id: group.id,
+                name: group.name,
+                description: group.description ?? undefined,
+                isPublic: group.isPublic,
+                topic: group.topic ?? undefined,
+                image: group.image ?? undefined,
+              }}
+              groupId={group.id}
+            />
+          )}
+          {userRole === "admin" && (
+            <GroupActionsDropdown
+              groupId={group.id}
+              groupName={group.name}
+              groupDescription={group.description ?? undefined}
+              isPublic={group.isPublic}
+              topic={group.topic ?? undefined}
+              image={group.image ?? undefined}
+            />
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
         <Card className="md:col-span-1">
           <CardHeader>
-            <CardTitle className="text-lg">Group Info</CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-lg">Group Info</CardTitle>
+              {(userRole === "admin" || userRole === "moderator") && (
+                <AddMemberDialog
+                  groupId={group.id}
+                  currentUserRole={userRole}
+                  existingMemberIds={group.members.map(
+                    (member: { userId: string }) => member.userId
+                  )}
+                />
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2 text-sm">
@@ -151,27 +177,23 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-3">
-          <CardHeader>
-            <CardTitle>Chat</CardTitle>
-            <CardDescription>
-              {isMember
-                ? "Join the conversation"
-                : "Join this group to start chatting"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isMember ? (
-              <GroupChat groupId={group.id} currentUserId={userId} userRole={userRole} />
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
+        <Card className="md:col-span-3 p-0 overflow-hidden">
+          {isMember ? (
+            <GroupChat groupId={group.id} currentUserId={userId} userRole={userRole} />
+          ) : (
+            <CardContent className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 mx-auto">
+                  <Users className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Join to start chatting</h3>
+                <p className="text-muted-foreground mb-6">
                   You need to join this group to participate in the chat.
                 </p>
                 <JoinGroupButton groupId={id} />
               </div>
-            )}
-          </CardContent>
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>
