@@ -9,14 +9,16 @@ import Link from "next/link"
 import { GroupForm } from "@/components/groups/GroupForm"
 import { JoinGroupButton } from "@/components/groups/JoinGroupButton"
 
-export default async function GroupPage({ params }: { params: { id: string } }) {
+export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) {
     redirect("/login")
   }
 
+  const { id } = await params
+
   const group = await db.group.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       creator: {
         select: {
@@ -151,7 +153,7 @@ export default async function GroupPage({ params }: { params: { id: string } }) 
                 <p className="text-muted-foreground mb-4">
                   You need to join this group to participate in the chat.
                 </p>
-                <JoinGroupButton groupId={params.id} />
+                <JoinGroupButton groupId={id} />
               </div>
             )}
           </CardContent>

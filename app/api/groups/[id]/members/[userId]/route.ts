@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; userId: string } }
+  { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,8 +12,10 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id, userId } = await params
+
     const group = await db.group.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         members: true,
       },
@@ -31,13 +33,13 @@ export async function PUT(
     const body = await request.json()
     const { role, action } = body
 
-    const targetMember = group.members.find((m) => m.userId === params.userId)
+    const targetMember = group.members.find((m) => m.userId === userId)
     if (!targetMember) {
       return NextResponse.json({ error: "User is not a member" }, { status: 404 })
     }
 
     // Can't change own role
-    if (params.userId === session.user.id) {
+    if (userId === session.user.id) {
       return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 })
     }
 
@@ -50,8 +52,8 @@ export async function PUT(
       await db.groupMember.delete({
         where: {
           groupId_userId: {
-            groupId: params.id,
-            userId: params.userId,
+            groupId: id,
+            userId: userId,
           },
         },
       })
@@ -62,8 +64,8 @@ export async function PUT(
       await db.groupMember.update({
         where: {
           groupId_userId: {
-            groupId: params.id,
-            userId: params.userId,
+            groupId: id,
+            userId: userId,
           },
         },
         data: { role },

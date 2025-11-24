@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; messageId: string } }
+  { params }: { params: Promise<{ id: string; messageId: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,8 +12,10 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { messageId } = await params
+
     const message = await db.groupMessage.findUnique({
-      where: { id: params.messageId },
+      where: { id: messageId },
       include: {
         group: {
           include: {
@@ -44,7 +46,7 @@ export async function PUT(
     }
 
     const updatedMessage = await db.groupMessage.update({
-      where: { id: params.messageId },
+      where: { id: messageId },
       data: {
         content: content.trim(),
         editedAt: new Date(),
@@ -100,7 +102,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; messageId: string } }
+  { params }: { params: Promise<{ id: string; messageId: string }> }
 ) {
   try {
     const session = await auth()
@@ -108,8 +110,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { messageId } = await params
+
     const message = await db.groupMessage.findUnique({
-      where: { id: params.messageId },
+      where: { id: messageId },
       include: {
         group: {
           include: {
@@ -133,7 +137,7 @@ export async function DELETE(
     }
 
     await db.groupMessage.delete({
-      where: { id: params.messageId },
+      where: { id: messageId },
     })
 
     return NextResponse.json({ success: true })

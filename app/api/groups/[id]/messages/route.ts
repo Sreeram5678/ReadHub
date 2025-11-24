@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,12 +12,14 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
+
     const searchParams = request.nextUrl.searchParams
     const limit = parseInt(searchParams.get("limit") || "50")
     const cursor = searchParams.get("cursor")
 
     const group = await db.group.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         members: true,
       },
@@ -33,7 +35,7 @@ export async function GET(
     }
 
     let where: any = {
-      groupId: params.id,
+      groupId: id,
     }
 
     if (cursor) {
@@ -97,7 +99,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -105,8 +107,10 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
+
     const group = await db.group.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         members: true,
       },
@@ -130,7 +134,7 @@ export async function POST(
 
     const message = await db.groupMessage.create({
       data: {
-        groupId: params.id,
+        groupId: id,
         userId: session.user.id,
         content: content.trim(),
         replyToId: replyToId || null,
@@ -189,7 +193,7 @@ export async function POST(
 
     // Update group's updatedAt to reflect new message
     await db.group.update({
-      where: { id: params.id },
+      where: { id },
       data: { updatedAt: new Date() },
     })
 
