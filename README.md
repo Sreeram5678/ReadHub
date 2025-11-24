@@ -4,11 +4,28 @@ A Next.js application for tracking daily book reading progress and competing wit
 
 ## Features
 
+### Core Features
 - **OAuth Authentication**: Sign in with Google or GitHub
 - **Book Management**: Add, edit, and delete books you're reading
 - **Daily Reading Logs**: Track pages read per book each day
+- **Book Completion**: Mark books as completed with visual indicators
 - **Leaderboard**: Compete with friends and see rankings (all-time, today, this week, this month)
-- **Dashboard**: View your reading statistics and recent activity
+- **Enhanced Dashboard**: Comprehensive reading statistics and insights
+
+### Reading Analytics & Goals
+- **Reading Streaks**: Track consecutive days of reading with streak counter
+- **Reading Goals**: Set and track daily, weekly, or monthly reading targets
+  - Create custom reading goals
+  - Edit goals to adjust targets
+  - Delete goals when no longer needed
+  - Visual progress bars showing goal completion
+- **Reading Trends Chart**: Visualize your reading activity over the last 30 days
+- **Reading Statistics**: 
+  - Total pages read (all-time)
+  - Today's reading progress
+  - Weekly and monthly reading summaries
+  - Days active this week/month
+  - Completed books count
 
 ## Tech Stack
 
@@ -17,6 +34,7 @@ A Next.js application for tracking daily book reading progress and competing wit
 - **Database**: PostgreSQL with Prisma ORM (SQLite for local development)
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui
+- **Charts**: Recharts for data visualization
 
 ## Getting Started
 
@@ -71,11 +89,21 @@ npm run dev
 
 ## Usage
 
+### Getting Started
 1. **Sign In**: Click "Get Started" and sign in with Google or GitHub
 2. **Add Books**: Go to "My Books" and add books you're reading
-3. **Log Reading**: Use the "Log Reading" button on the dashboard to record pages read
-4. **View Leaderboard**: Check the leaderboard to see how you rank against other users
-5. **Track Progress**: View your reading statistics on the dashboard
+   - Set total pages and initial pages (if you've already started reading)
+3. **Log Reading**: Use the "Log Reading" button on the dashboard to record pages read each day
+4. **Mark Books Complete**: Click the checkmark icon on any book to mark it as completed
+
+### Tracking Your Progress
+- **View Dashboard**: See your reading streak, total pages, and daily/weekly/monthly stats
+- **Set Reading Goals**: Create daily, weekly, or monthly reading targets
+  - Click "Add Goal" on the dashboard
+  - Choose your period and set a target number of pages
+  - Edit or delete goals anytime using the action buttons
+- **View Trends**: Check the reading trends chart to see your reading patterns over time
+- **Check Leaderboard**: See how you rank against other users (all-time, today, this week, this month)
 
 ## Project Structure
 
@@ -96,7 +124,10 @@ book-reading-tracker/
 
 - **User**: OAuth user information
 - **Book**: Books being tracked by users
+  - Includes status (reading/completed) and completion date
+  - Tracks initial pages and current progress
 - **ReadingLog**: Daily reading entries
+- **ReadingGoal**: User-defined reading goals (daily/weekly/monthly targets)
 
 ## Development
 
