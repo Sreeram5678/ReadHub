@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { LeaderboardPageClient } from "@/components/leaderboard/LeaderboardPageClient"
 import { Prisma } from "@prisma/client"
 
-async function getLeaderboard(period: string) {
+async function getLeaderboard(period: string, userId: string) {
   let startDate: Date | undefined
   const now = new Date()
 
@@ -25,12 +25,32 @@ async function getLeaderboard(period: string) {
       startDate = undefined
   }
 
+  // Get accepted friendships
+  const friendships = await db.friendship.findMany({
+    where: {
+      OR: [
+        { userId, status: "accepted" },
+        { friendId: userId, status: "accepted" },
+      ],
+    },
+  })
+
+  // Get friend IDs (include current user)
+  const friendIds = friendships.map((f: { userId: string; friendId: string }) =>
+    f.userId === userId ? f.friendId : f.userId
+  )
+  const userIds = [userId, ...friendIds]
+
   const where: Prisma.ReadingLogWhereInput = {}
   if (startDate) {
     where.date = { gte: startDate }
   }
 
+  // Fetch only friends and current user
   const users = await db.user.findMany({
+    where: {
+      id: { in: userIds },
+    },
     include: {
       readingLogs: {
         where,
@@ -84,7 +104,7 @@ export default async function LeaderboardPage({
 
   const params = await searchParams
   const period = params.period || "all-time"
-  const leaderboard = await getLeaderboard(period)
+  const leaderboard = await getLeaderboard(period, session.user.id)
 
   return (
     <LeaderboardPageClient

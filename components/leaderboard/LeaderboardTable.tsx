@@ -30,8 +30,7 @@ export function LeaderboardTable({
   if (leaderboard.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-8">
-        No reading data yet. Start logging your reading to appear on the
-        leaderboard!
+        No friends with reading data yet. Add friends and start logging your reading!
       </p>
     )
   }

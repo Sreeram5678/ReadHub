@@ -50,6 +50,30 @@ export function MobileNav({ userName }: MobileNavProps) {
             >
               Leaderboard
             </Link>
+            <Link
+              href="/friends"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              onClick={() => setOpen(false)}
+              prefetch={true}
+            >
+              Friends
+            </Link>
+            <Link
+              href="/challenges"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              onClick={() => setOpen(false)}
+              prefetch={true}
+            >
+              Challenges
+            </Link>
+            <Link
+              href="/reminders"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              onClick={() => setOpen(false)}
+              prefetch={true}
+            >
+              Reminders
+            </Link>
             <div className="pt-2 border-t">
               <p className="text-sm text-muted-foreground mb-2">{userName}</p>
               <form action={signOutAction}>
