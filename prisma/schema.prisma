@@ -113,4 +113,5 @@ model ReadingLog {
   @@index([userId])
   @@index([bookId])
   @@index([date])
+  @@index([userId, date])
 }

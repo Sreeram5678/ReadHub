@@ -3,8 +3,9 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { DashboardClient } from "@/components/dashboard/DashboardClient"
 import { calculateReadingStreak, getReadingDaysInPeriod } from "@/lib/streaks"
+import { cache } from "react"
 
-async function getBooks(userId: string) {
+const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
     where: { userId },
     select: {
@@ -13,7 +14,7 @@ async function getBooks(userId: string) {
       author: true,
     },
   })
-}
+})
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -24,94 +25,97 @@ export default async function DashboardPage() {
 
   const userId = session.user.id
 
-  const totalBooks = await db.book.count({
-    where: { userId },
-  })
-
-  const completedBooks = await db.book.count({
-    where: { userId, status: "completed" },
-  })
-
-  const readingLogsSum = await db.readingLog.aggregate({
-    where: { userId },
-    _sum: { pagesRead: true },
-  })
-
-  const books = await db.book.findMany({
-    where: { userId },
-  })
+  // Parallelize all independent queries for maximum performance
+  const [
+    totalBooks,
+    completedBooks,
+    readingLogsSum,
+    books,
+    todayPages,
+    allLogs,
+    recentLogs,
+    last30DaysLogs,
+    readingGoals,
+    booksForForm,
+  ] = await Promise.all([
+    db.book.count({ where: { userId } }),
+    db.book.count({ where: { userId, status: "completed" } }),
+    db.readingLog.aggregate({
+      where: { userId },
+      _sum: { pagesRead: true },
+    }),
+    db.book.findMany({
+      where: { userId },
+      select: { initialPages: true },
+    }),
+    (async () => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return db.readingLog.aggregate({
+        where: {
+          userId,
+          date: { gte: today },
+        },
+        _sum: { pagesRead: true },
+      })
+    })(),
+    // Only fetch logs from last 90 days for streak calculation (optimization)
+    db.readingLog.findMany({
+      where: {
+        userId,
+        date: {
+          gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+        },
+      },
+      select: { date: true },
+      orderBy: { date: "desc" },
+    }),
+    db.readingLog.findMany({
+      where: { userId },
+      include: { book: { select: { title: true } } },
+      orderBy: { date: "desc" },
+      take: 5,
+    }),
+    db.readingLog.findMany({
+      where: {
+        userId,
+        date: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+      select: {
+        date: true,
+        pagesRead: true,
+      },
+      orderBy: { date: "asc" },
+    }),
+    db.readingGoal.findMany({
+      where: {
+        userId,
+        endDate: { gte: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    getBooks(userId),
+  ])
 
   const initialPagesSum = books.reduce(
     (sum, book) => sum + ((book as any).initialPages || 0),
     0
   )
 
-  const totalPagesRead = {
-    _sum: {
-      pagesRead: (readingLogsSum._sum.pagesRead || 0) + initialPagesSum,
-    },
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayPages = await db.readingLog.aggregate({
-    where: {
-      userId,
-      date: {
-        gte: today,
-      },
-    },
-    _sum: { pagesRead: true },
-  })
-
-  const allLogs = await db.readingLog.findMany({
-    where: { userId },
-    select: { date: true },
-    orderBy: { date: "desc" },
-  })
+  const totalPagesRead =
+    (readingLogsSum._sum.pagesRead || 0) + initialPagesSum
 
   const readingStreak = calculateReadingStreak(allLogs)
   const daysReadThisWeek = getReadingDaysInPeriod(allLogs, 7)
   const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30)
 
-  const recentLogs = await db.readingLog.findMany({
-    where: { userId },
-    include: { book: true },
-    orderBy: { date: "desc" },
-    take: 5,
-  })
-
-  const last30DaysLogs = await db.readingLog.findMany({
-    where: {
-      userId,
-      date: {
-        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      },
-    },
-    select: {
-      date: true,
-      pagesRead: true,
-    },
-    orderBy: { date: "asc" },
-  })
-
-  const readingGoals = await db.readingGoal.findMany({
-    where: {
-      userId,
-      endDate: {
-        gte: new Date(),
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-
-  const booksForForm = await getBooks(userId)
-
   return (
     <DashboardClient
       totalBooks={totalBooks}
       completedBooks={completedBooks}
-      totalPagesRead={totalPagesRead._sum.pagesRead || 0}
+      totalPagesRead={totalPagesRead}
       todayPages={todayPages._sum.pagesRead || 0}
       recentLogs={recentLogs}
       books={booksForForm}

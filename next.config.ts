@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Suppress middleware deprecation warning (NextAuth v5 still uses middleware pattern)
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+  },
+  // Optimize images if you add them later
+  images: {
+    formats: ['image/avif', 'image/webp'],
   },
 };
 

@@ -32,19 +32,13 @@ export async function GET(request: Request) {
         startDate = undefined
     }
 
-    const where: any = {}
-    if (startDate) {
-      where.date = { gte: startDate }
-    }
-
+    // Fetch users and their book counts first
     const users = await db.user.findMany({
-      include: {
-        readingLogs: {
-          where,
-          select: {
-            pagesRead: true,
-          },
-        },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
         _count: {
           select: {
             books: true,
@@ -53,18 +47,35 @@ export async function GET(request: Request) {
       },
     })
 
+    // Fetch aggregated page counts in parallel for better performance
+    const userPageCounts = await Promise.all(
+      users.map(async (user) => {
+        const where: any = { userId: user.id }
+        if (startDate) {
+          where.date = { gte: startDate }
+        }
+
+        const result = await db.readingLog.aggregate({
+          where,
+          _sum: { pagesRead: true },
+        })
+
+        return {
+          userId: user.id,
+          totalPages: result._sum.pagesRead || 0,
+        }
+      })
+    )
+
     const leaderboard = users
       .map((user) => {
-        const totalPages = user.readingLogs.reduce(
-          (sum, log) => sum + log.pagesRead,
-          0
-        )
+        const pageCount = userPageCounts.find((pc) => pc.userId === user.id)
         return {
           id: user.id,
           name: user.name || user.email,
           email: user.email,
           image: user.image,
-          totalPages,
+          totalPages: pageCount?.totalPages || 0,
           bookCount: user._count.books,
         }
       })

@@ -4,25 +4,18 @@ import { db } from "@/lib/db"
 import { BooksPageClient } from "@/components/books/BooksPageClient"
 
 async function getBooks(userId: string) {
+  // Fetch books with logs in a single query using include (fixes N+1 problem)
   const books = await db.book.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
+    include: {
+      readingLogs: {
+        select: { pagesRead: true },
+      },
+    },
   })
 
-  const booksWithLogs = await Promise.all(
-    books.map(async (book) => {
-      const logs = await db.readingLog.findMany({
-        where: { bookId: book.id },
-        select: { pagesRead: true },
-      })
-      return {
-        ...book,
-        readingLogs: logs,
-      }
-    })
-  )
-
-  return booksWithLogs
+  return books
 }
 
 export default async function BooksPage() {
