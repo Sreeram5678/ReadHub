@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 
 export async function PUT(
   request: Request,
@@ -24,7 +25,7 @@ export async function PUT(
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
-    const updateData: any = {}
+    const updateData: Prisma.BookUpdateInput = {}
     if (title !== undefined) updateData.title = title
     if (author !== undefined) updateData.author = author
     if (totalPages !== undefined) updateData.totalPages = parseInt(totalPages)

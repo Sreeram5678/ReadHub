@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 
 export async function GET(request: Request) {
   try {
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
     // Fetch aggregated page counts in parallel for better performance
     const userPageCounts = await Promise.all(
       users.map(async (user) => {
-        const where: any = { userId: user.id }
+        const where: Prisma.ReadingLogWhereInput = { userId: user.id }
         if (startDate) {
           where.date = { gte: startDate }
         }

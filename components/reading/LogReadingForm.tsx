@@ -71,9 +71,10 @@ export function LogReadingForm({
       })
       setOpen(false)
       onLogAdded()
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error logging reading:", error)
-      alert(error.message || "Failed to log reading. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "Failed to log reading. Please try again."
+      alert(errorMessage)
     } finally {
       setLoading(false)
     }
