@@ -51,16 +51,12 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {books.map((book) => {
-            // Memoize calculations per book for better performance
-            const { totalPagesRead, progress, isCompleted } = useMemo(() => {
-              const total = book.initialPages + book.readingLogs.reduce(
-                (sum, log) => sum + log.pagesRead,
-                0
-              )
-              const prog = (total / book.totalPages) * 100
-              const completed = book.status === "completed"
-              return { totalPagesRead: total, progress: prog, isCompleted: completed }
-            }, [book.initialPages, book.readingLogs, book.totalPages, book.status])
+            const totalPagesRead = book.initialPages + book.readingLogs.reduce(
+              (sum, log) => sum + log.pagesRead,
+              0
+            )
+            const progress = (totalPagesRead / book.totalPages) * 100
+            const isCompleted = book.status === "completed"
 
             return (
               <Card key={book.id} className={isCompleted ? "opacity-75" : ""}>
