@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { GroupForm } from "./GroupForm"
+import { GroupForm } from "@/components/groups/GroupForm"
 
 interface GroupFormWrapperProps {
   group: {

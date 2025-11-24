@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Users, Search, Lock, Globe, MessageSquare, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { GroupForm } from "./GroupForm"
+import { GroupForm } from "@/components/groups/GroupForm"
 
 interface Group {
   id: string
