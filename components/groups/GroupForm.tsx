@@ -28,7 +28,7 @@ export function GroupForm({ group, onSuccess }: GroupFormProps) {
     name: group?.name || "",
     description: group?.description || "",
     isPublic: group?.isPublic !== undefined ? group.isPublic : true,
-    topic: group?.topic || "",
+    topic: group?.topic || "none",
     image: group?.image || "",
   })
 
@@ -40,10 +40,15 @@ export function GroupForm({ group, onSuccess }: GroupFormProps) {
       const url = group ? `/api/groups/${group.id}` : "/api/groups"
       const method = group ? "PUT" : "POST"
 
+      const payload = {
+        ...formData,
+        topic: formData.topic === "none" ? null : formData.topic,
+      }
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -52,7 +57,7 @@ export function GroupForm({ group, onSuccess }: GroupFormProps) {
           name: "",
           description: "",
           isPublic: true,
-          topic: "",
+          topic: "none",
           image: "",
         })
         onSuccess()
@@ -133,7 +138,7 @@ export function GroupForm({ group, onSuccess }: GroupFormProps) {
                   <SelectValue placeholder="Select topic" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   <SelectItem value="fiction">Fiction</SelectItem>
                   <SelectItem value="non-fiction">Non-Fiction</SelectItem>
                   <SelectItem value="mystery">Mystery</SelectItem>
