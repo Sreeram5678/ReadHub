@@ -84,36 +84,38 @@ export function DashboardClient({
     .reduce((sum, t) => sum + t.pagesRead, 0)
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {userName}!</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Welcome back, {userName}!</p>
         </div>
-        <LogReadingForm books={books} onLogAdded={refreshData} />
+        <div className="flex-shrink-0">
+          <LogReadingForm books={books} onLogAdded={refreshData} />
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Reading Streak</CardTitle>
-            <CardDescription>Consecutive days reading</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Reading Streak</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Consecutive days reading</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              <div className="text-3xl font-bold">{readingStreak}</div>
+              <Flame className="h-4 w-4 md:h-5 md:w-5 text-orange-500" />
+              <div className="text-2xl md:text-3xl font-bold">{readingStreak}</div>
             </div>
             <p className="text-xs text-muted-foreground mt-1">days</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Total Books</CardTitle>
-            <CardDescription>Books tracked</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Total Books</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Books tracked</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalBooks}</div>
+            <div className="text-2xl md:text-3xl font-bold">{totalBooks}</div>
             {completedBooks > 0 && (
               <p className="text-sm text-muted-foreground mt-1">
                 {completedBooks} completed
@@ -122,45 +124,45 @@ export function DashboardClient({
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Total Pages</CardTitle>
-            <CardDescription>All-time pages read</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Total Pages</CardTitle>
+            <CardDescription className="text-xs md:text-sm">All-time pages read</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalPagesRead.toLocaleString()}</div>
+            <div className="text-2xl md:text-3xl font-bold">{totalPagesRead.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Today's Reading</CardTitle>
-            <CardDescription>Pages read today</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Today's Reading</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Pages read today</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{todayPages}</div>
+            <div className="text-2xl md:text-3xl font-bold">{todayPages}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle>This Week</CardTitle>
-            <CardDescription>Pages read this week</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">This Week</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Pages read this week</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{weeklyPages}</div>
+            <div className="text-xl md:text-2xl font-bold">{weeklyPages}</div>
             <p className="text-sm text-muted-foreground mt-1">
               {daysReadThisWeek} days active
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>This Month</CardTitle>
-            <CardDescription>Pages read this month</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">This Month</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Pages read this month</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{monthlyPages}</div>
+            <div className="text-xl md:text-2xl font-bold">{monthlyPages}</div>
             <p className="text-sm text-muted-foreground mt-1">
               {daysReadThisMonth} days active
             </p>

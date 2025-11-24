@@ -2,6 +2,7 @@ import { auth, signOut } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { MobileNav } from "@/components/ui/mobile-nav"
 
 export default async function ProtectedLayout({
   children,
@@ -16,13 +17,13 @@ export default async function ProtectedLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b">
+      <nav className="border-b relative">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-xl font-bold">
+          <div className="flex items-center gap-4 md:gap-6">
+            <Link href="/dashboard" className="text-lg md:text-xl font-bold">
               Book Tracker
             </Link>
-            <div className="flex gap-4">
+            <div className="hidden md:flex gap-4">
               <Link
                 href="/dashboard"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -43,8 +44,8 @@ export default async function ProtectedLayout({
               </Link>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="hidden sm:inline-block text-sm text-muted-foreground">
               {session.user?.name || session.user?.email}
             </span>
             <form
@@ -53,14 +54,15 @@ export default async function ProtectedLayout({
                 await signOut({ redirectTo: "/login" })
               }}
             >
-              <Button type="submit" variant="ghost" size="sm">
+              <Button type="submit" variant="ghost" size="sm" className="hidden sm:inline-flex">
                 Sign Out
               </Button>
             </form>
+            <MobileNav userName={session.user?.name || session.user?.email || ""} />
           </div>
         </div>
       </nav>
-      <main className="container mx-auto px-4 py-8">{children}</main>
+      <main className="container mx-auto px-4 py-4 md:py-8">{children}</main>
     </div>
   )
 }
