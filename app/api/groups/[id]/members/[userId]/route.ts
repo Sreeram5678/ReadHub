@@ -13,6 +13,7 @@ export async function PUT(
     }
 
     const { id, userId } = await params
+    const currentUserId = session.user.id
 
     const group = await db.group.findUnique({
       where: { id },
@@ -25,7 +26,7 @@ export async function PUT(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const currentUserMember = group.members.find((m) => m.userId === session.user.id)
+    const currentUserMember = group.members.find((m) => m.userId === currentUserId)
     if (!currentUserMember || (currentUserMember.role !== "admin" && currentUserMember.role !== "moderator")) {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
     }
@@ -39,7 +40,7 @@ export async function PUT(
     }
 
     // Can't change own role
-    if (userId === session.user.id) {
+    if (userId === currentUserId) {
       return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 })
     }
 

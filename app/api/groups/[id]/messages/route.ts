@@ -13,6 +13,7 @@ export async function GET(
     }
 
     const { id } = await params
+    const userId = session.user.id
 
     const searchParams = request.nextUrl.searchParams
     const limit = parseInt(searchParams.get("limit") || "50")
@@ -29,7 +30,7 @@ export async function GET(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const isMember = group.members.some((m) => m.userId === session.user.id)
+    const isMember = group.members.some((m) => m.userId === userId)
     if (!group.isPublic && !isMember) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 })
     }
@@ -108,6 +109,7 @@ export async function POST(
     }
 
     const { id } = await params
+    const userId = session.user.id
 
     const group = await db.group.findUnique({
       where: { id },
@@ -120,7 +122,7 @@ export async function POST(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const isMember = group.members.some((m) => m.userId === session.user.id)
+    const isMember = group.members.some((m) => m.userId === userId)
     if (!isMember) {
       return NextResponse.json({ error: "You must be a member to send messages" }, { status: 403 })
     }
@@ -135,7 +137,7 @@ export async function POST(
     const message = await db.groupMessage.create({
       data: {
         groupId: id,
-        userId: session.user.id,
+        userId: userId,
         content: content.trim(),
         replyToId: replyToId || null,
         attachments: attachments

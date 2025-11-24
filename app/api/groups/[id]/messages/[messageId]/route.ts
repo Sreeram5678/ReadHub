@@ -13,6 +13,7 @@ export async function PUT(
     }
 
     const { messageId } = await params
+    const userId = session.user.id
 
     const message = await db.groupMessage.findUnique({
       where: { id: messageId },
@@ -30,8 +31,8 @@ export async function PUT(
     }
 
     // Only message author, admins, or moderators can edit
-    const isAuthor = message.userId === session.user.id
-    const member = message.group.members.find((m) => m.userId === session.user.id)
+    const isAuthor = message.userId === userId
+    const member = message.group.members.find((m) => m.userId === userId)
     const canEdit = isAuthor || member?.role === "admin" || member?.role === "moderator"
 
     if (!canEdit) {
@@ -111,6 +112,7 @@ export async function DELETE(
     }
 
     const { messageId } = await params
+    const userId = session.user.id
 
     const message = await db.groupMessage.findUnique({
       where: { id: messageId },
@@ -128,8 +130,8 @@ export async function DELETE(
     }
 
     // Only message author, admins, or moderators can delete
-    const isAuthor = message.userId === session.user.id
-    const member = message.group.members.find((m) => m.userId === session.user.id)
+    const isAuthor = message.userId === userId
+    const member = message.group.members.find((m) => m.userId === userId)
     const canDelete = isAuthor || member?.role === "admin" || member?.role === "moderator"
 
     if (!canDelete) {
