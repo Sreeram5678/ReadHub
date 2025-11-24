@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Book" ADD COLUMN "initialPages" INTEGER NOT NULL DEFAULT 0;
+

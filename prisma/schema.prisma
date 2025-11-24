@@ -21,8 +21,25 @@ model User {
   sessions      Session[]
   books         Book[]
   readingLogs   ReadingLog[]
+  readingGoals  ReadingGoal[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+}
+
+model ReadingGoal {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  target      Int
+  period      String
+  startDate   DateTime
+  endDate     DateTime
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type, period])
 }
 
 model Account {
@@ -70,12 +87,15 @@ model Book {
   totalPages  Int
   currentPage Int          @default(0)
   initialPages Int         @default(0)
+  status      String       @default("reading")
+  completedAt DateTime?
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   readingLogs ReadingLog[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   @@index([userId])
+  @@index([status])
 }
 
 model ReadingLog {

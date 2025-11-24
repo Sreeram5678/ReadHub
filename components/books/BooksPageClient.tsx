@@ -11,6 +11,7 @@ interface Book {
   author: string
   totalPages: number
   initialPages: number
+  status?: string
   readingLogs: { pagesRead: number }[]
 }
 
@@ -67,14 +68,19 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
             )
             const progress = (totalPagesRead / book.totalPages) * 100
 
+            const isCompleted = book.status === "completed"
+
             return (
-              <Card key={book.id}>
+              <Card key={book.id} className={isCompleted ? "opacity-75" : ""}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="line-clamp-2">{book.title}</CardTitle>
                       <CardDescription className="mt-1">
                         by {book.author}
+                        {isCompleted && (
+                          <span className="ml-2 text-green-600">Completed</span>
+                        )}
                       </CardDescription>
                     </div>
                     <BookActions book={book} onBookUpdated={refreshBooks} />
@@ -90,12 +96,14 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                       <div
-                        className="h-full bg-primary transition-all"
+                        className={`h-full transition-all ${
+                          isCompleted ? "bg-green-600" : "bg-primary"
+                        }`}
                         style={{ width: `${Math.min(progress, 100)}%` }}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {Math.round(progress)}% complete
+                      {isCompleted ? "100% complete" : `${Math.round(progress)}% complete`}
                     </p>
                   </div>
                 </CardContent>

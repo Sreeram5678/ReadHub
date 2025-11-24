@@ -14,7 +14,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { title, author, totalPages, initialPages } = body
+    const { title, author, totalPages, initialPages, status } = body
 
     const book = await db.book.findUnique({
       where: { id },
@@ -24,14 +24,23 @@ export async function PUT(
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
+    const updateData: any = {}
+    if (title !== undefined) updateData.title = title
+    if (author !== undefined) updateData.author = author
+    if (totalPages !== undefined) updateData.totalPages = parseInt(totalPages)
+    if (initialPages !== undefined) updateData.initialPages = parseInt(initialPages)
+    if (status !== undefined) {
+      updateData.status = status
+      if (status === "completed" && !book.completedAt) {
+        updateData.completedAt = new Date()
+      } else if (status !== "completed") {
+        updateData.completedAt = null
+      }
+    }
+
     const updatedBook = await db.book.update({
       where: { id },
-      data: {
-        title,
-        author,
-        totalPages: totalPages ? parseInt(totalPages) : undefined,
-        initialPages: initialPages !== undefined ? parseInt(initialPages) : undefined,
-      },
+      data: updateData,
     })
 
     return NextResponse.json(updatedBook)
