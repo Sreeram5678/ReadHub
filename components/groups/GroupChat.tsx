@@ -64,14 +64,92 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+    let shouldUsePolling = false
+    
+    const setupEventStream = () => {
+      try {
+        if (typeof EventSource === "undefined") {
+          console.warn("EventSource not supported, falling back to polling")
+          shouldUsePolling = true
+          startPolling()
+          return
+        }
+
+        const eventSource = new EventSource(`/api/groups/${groupId}/messages/stream`)
+        eventSourceRef.current = eventSource
+
+        eventSource.onopen = () => {
+          console.log("EventSource connected")
+        }
+
+        eventSource.onmessage = (event) => {
+          if (!isMounted) return
+          try {
+            const data = JSON.parse(event.data)
+            if (data.type === "messages" && data.messages) {
+              setMessages((prev) => {
+                const existingIds = new Set(prev.map((m) => m.id))
+                const newMessages = data.messages.filter((m: Message) => !existingIds.has(m.id))
+                return [...prev, ...newMessages]
+              })
+            } else if (data.type === "updates" && data.messages) {
+              setMessages((prev) =>
+                prev.map((msg) => {
+                  const updated = data.messages.find((m: Message) => m.id === msg.id)
+                  return updated ? { ...msg, ...updated } : msg
+                })
+              )
+            }
+          } catch (error) {
+            console.error("Error parsing SSE message:", error)
+          }
+        }
+
+        eventSource.onerror = (error) => {
+          console.error("EventSource error:", error)
+          if (eventSource.readyState === EventSource.CLOSED) {
+            eventSource.close()
+            shouldUsePolling = true
+            startPolling()
+            if (isMounted) {
+              setTimeout(setupEventStream, 5000)
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error setting up EventSource:", error)
+        shouldUsePolling = true
+        startPolling()
+      }
+    }
+
+    const startPolling = () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+      pollingIntervalRef.current = setInterval(() => {
+        if (isMounted) {
+          fetchMessages()
+        }
+      }, 3000)
+    }
+
     fetchMessages()
     setupEventStream()
 
     return () => {
+      isMounted = false
       if (eventSourceRef.current) {
         eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
       }
     }
   }, [groupId])
@@ -86,41 +164,11 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
       if (response.ok) {
         const data = await response.json()
         setMessages(data)
+      } else {
+        console.error("Failed to fetch messages:", response.status, response.statusText)
       }
     } catch (error) {
       console.error("Error fetching messages:", error)
-    }
-  }
-
-  const setupEventStream = () => {
-    const eventSource = new EventSource(`/api/groups/${groupId}/messages/stream`)
-    eventSourceRef.current = eventSource
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        if (data.type === "messages" && data.messages) {
-          setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id))
-            const newMessages = data.messages.filter((m: Message) => !existingIds.has(m.id))
-            return [...prev, ...newMessages]
-          })
-        } else if (data.type === "updates" && data.messages) {
-          setMessages((prev) =>
-            prev.map((msg) => {
-              const updated = data.messages.find((m: Message) => m.id === msg.id)
-              return updated ? { ...msg, ...updated } : msg
-            })
-          )
-        }
-      } catch (error) {
-        console.error("Error parsing SSE message:", error)
-      }
-    }
-
-    eventSource.onerror = () => {
-      eventSource.close()
-      setTimeout(setupEventStream, 3000)
     }
   }
 
@@ -220,26 +268,26 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
 
   return (
     <div className="flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex-1 overflow-y-auto space-y-4 p-4">
-        {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            No messages yet. Start the conversation!
-          </div>
-        ) : (
-          messages.map((message) => (
+        <div className="flex-1 overflow-y-auto space-y-4 p-4">
+          {messages.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              No messages yet. Start the conversation!
+            </div>
+          ) : (
+            messages.map((message) => (
             <div key={message.id} className="flex gap-3 group">
               <div className="flex-shrink-0">
-                {message.user.image ? (
-                  <img
-                    src={message.user.image}
-                    alt={message.user.name || message.user.email}
-                    className="w-8 h-8 rounded-full"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs">
-                    {(message.user.name || message.user.email)[0].toUpperCase()}
-                  </div>
-                )}
+                    {message.user.image ? (
+                      <img
+                        src={message.user.image}
+                        alt={message.user.name || message.user.email || "User"}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs">
+                        {((message.user.name || message.user.email || "U")[0] || "U").toUpperCase()}
+                      </div>
+                    )}
               </div>
               <div className="flex-1 min-w-0">
                 {message.replyTo && (
@@ -252,7 +300,7 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
                     {message.user.name || message.user.email}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
+                    {message.createdAt ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true }) : "Just now"}
                   </span>
                   {message.editedAt && (
                     <span className="text-xs text-muted-foreground">(edited)</span>
