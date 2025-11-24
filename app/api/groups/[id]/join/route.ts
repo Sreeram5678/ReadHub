@@ -13,6 +13,7 @@ export async function POST(
     }
 
     const { id } = await params
+    const userId = session.user.id
 
     const group = await db.group.findUnique({
       where: { id },
@@ -26,7 +27,7 @@ export async function POST(
     }
 
     // Check if already a member
-    const isMember = group.members.some((m) => m.userId === session.user.id)
+    const isMember = group.members.some((m) => m.userId === userId)
     if (isMember) {
       return NextResponse.json({ error: "Already a member" }, { status: 400 })
     }
@@ -37,7 +38,7 @@ export async function POST(
     await db.groupMember.create({
       data: {
         groupId: id,
-        userId: session.user.id,
+        userId: userId,
         role: "member",
       },
     })
@@ -60,6 +61,7 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const userId = session.user.id
 
     const group = await db.group.findUnique({
       where: { id },
@@ -73,7 +75,7 @@ export async function DELETE(
     }
 
     // Can't leave if you're the only admin
-    const member = group.members.find((m) => m.userId === session.user.id)
+    const member = group.members.find((m) => m.userId === userId)
     if (!member) {
       return NextResponse.json({ error: "Not a member" }, { status: 400 })
     }
@@ -92,7 +94,7 @@ export async function DELETE(
       where: {
         groupId_userId: {
           groupId: id,
-          userId: session.user.id,
+          userId: userId,
         },
       },
     })

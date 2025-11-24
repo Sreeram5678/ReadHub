@@ -13,6 +13,7 @@ export async function POST(
     }
 
     const { messageId } = await params
+    const userId = session.user.id
 
     const body = await request.json()
     const { emoji } = body
@@ -26,7 +27,7 @@ export async function POST(
       where: {
         messageId_userId_emoji: {
           messageId: messageId,
-          userId: session.user.id,
+          userId: userId,
           emoji,
         },
       },
@@ -38,7 +39,7 @@ export async function POST(
         where: {
           messageId_userId_emoji: {
             messageId: messageId,
-            userId: session.user.id,
+            userId: userId,
             emoji,
           },
         },
@@ -50,7 +51,7 @@ export async function POST(
     await db.groupMessageReaction.create({
       data: {
         messageId: messageId,
-        userId: session.user.id,
+        userId: userId,
         emoji,
       },
     })

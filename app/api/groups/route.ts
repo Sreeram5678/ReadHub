@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const currentUserId = session.user.id
     const searchParams = request.nextUrl.searchParams
     const search = searchParams.get("search")
     const isPublic = searchParams.get("isPublic")
@@ -17,12 +18,12 @@ export async function GET(request: NextRequest) {
 
     let where: any = {}
 
-    if (userId === session.user.id) {
+    if (userId === currentUserId) {
       // Get groups where user is a member
       where = {
         members: {
           some: {
-            userId: session.user.id,
+            userId: currentUserId,
           },
         },
       }
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
         isPublic: false,
         members: {
           some: {
-            userId: session.user.id,
+            userId: currentUserId,
           },
         },
       }
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
             isPublic: false,
             members: {
               some: {
-                userId: session.user.id,
+                userId: currentUserId,
               },
             },
           },
@@ -105,8 +106,8 @@ export async function GET(request: NextRequest) {
 
     // Check if user is member of each group
     const groupsWithMembership = groups.map((group) => {
-      const isMember = group.members.some((m) => m.userId === session.user.id)
-      const userRole = group.members.find((m) => m.userId === session.user.id)?.role || null
+      const isMember = group.members.some((m) => m.userId === currentUserId)
+      const userRole = group.members.find((m) => m.userId === currentUserId)?.role || null
       return {
         ...group,
         isMember,
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const userId = session.user.id
     const body = await request.json()
     const { name, description, isPublic, topic, image } = body
 
@@ -142,10 +144,10 @@ export async function POST(request: NextRequest) {
         isPublic: isPublic !== undefined ? isPublic : true,
         topic: topic?.trim() || null,
         image: image || null,
-        creatorId: session.user.id,
+        creatorId: userId,
         members: {
           create: {
-            userId: session.user.id,
+            userId: userId,
             role: "admin",
           },
         },

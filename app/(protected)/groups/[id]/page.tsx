@@ -15,6 +15,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     redirect("/login")
   }
 
+  const userId = session.user.id
   const { id } = await params
 
   const group = await db.group.findUnique({
@@ -53,8 +54,8 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     redirect("/groups")
   }
 
-  const isMember = group.members.some((m) => m.userId === session.user.id)
-  const userMember = group.members.find((m) => m.userId === session.user.id)
+  const isMember = group.members.some((m) => m.userId === userId)
+  const userMember = group.members.find((m) => m.userId === userId)
   const userRole = userMember?.role || null
 
   if (!group.isPublic && !isMember) {
@@ -147,7 +148,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
           </CardHeader>
           <CardContent>
             {isMember ? (
-              <GroupChat groupId={group.id} currentUserId={session.user.id} userRole={userRole} />
+              <GroupChat groupId={group.id} currentUserId={userId} userRole={userRole} />
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">

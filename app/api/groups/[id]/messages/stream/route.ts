@@ -13,6 +13,7 @@ export async function GET(
     }
 
     const { id } = await params
+    const userId = session.user.id
 
     const group = await db.group.findUnique({
       where: { id },
@@ -25,7 +26,7 @@ export async function GET(
       return new Response("Group not found", { status: 404 })
     }
 
-    const isMember = group.members.some((m) => m.userId === session.user.id)
+    const isMember = group.members.some((m) => m.userId === userId)
     if (!group.isPublic && !isMember) {
       return new Response("Access denied", { status: 403 })
     }
