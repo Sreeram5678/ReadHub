@@ -9,9 +9,15 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Include readingLogs to avoid N+1 queries
     const books = await db.book.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
+      include: {
+        readingLogs: {
+          select: { pagesRead: true },
+        },
+      },
     })
 
     return NextResponse.json(books)

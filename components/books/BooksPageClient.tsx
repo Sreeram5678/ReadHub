@@ -22,19 +22,8 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
     const response = await fetch("/api/books")
     if (response.ok) {
       const data = await response.json()
-      const booksWithLogs = await Promise.all(
-        data.map(async (book: Book) => {
-          const logsResponse = await fetch(`/api/reading-logs?bookId=${book.id}`)
-          const logs = logsResponse.ok ? await logsResponse.json() : []
-          return {
-            ...book,
-            readingLogs: logs.map((log: any) => ({
-              pagesRead: log.pagesRead,
-            })),
-          }
-        })
-      )
-      setBooks(booksWithLogs)
+      // Books already include readingLogs from the API, no need for N+1 queries
+      setBooks(data)
     }
   }
 
