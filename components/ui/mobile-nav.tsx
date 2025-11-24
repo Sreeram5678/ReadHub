@@ -74,6 +74,14 @@ export function MobileNav({ userName }: MobileNavProps) {
             >
               Reminders
             </Link>
+            <Link
+              href="/groups"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              onClick={() => setOpen(false)}
+              prefetch={true}
+            >
+              Groups
+            </Link>
             <div className="pt-2 border-t">
               <p className="text-sm text-muted-foreground mb-2">{userName}</p>
               <form action={signOutAction}>

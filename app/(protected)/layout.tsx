@@ -67,6 +67,13 @@ export default async function ProtectedLayout({
             >
               Reminders
             </Link>
+            <Link
+              href="/groups"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Groups
+            </Link>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
