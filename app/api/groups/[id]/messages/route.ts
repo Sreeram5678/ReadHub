@@ -30,7 +30,7 @@ export async function GET(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const isMember = group.members.some((m) => m.userId === userId)
+    const isMember = group.members.some((m: any) => m.userId === userId)
     if (!group.isPublic && !isMember) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 })
     }
@@ -122,7 +122,7 @@ export async function POST(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const isMember = group.members.some((m) => m.userId === userId)
+    const isMember = group.members.some((m: any) => m.userId === userId)
     if (!isMember) {
       return NextResponse.json({ error: "You must be a member to send messages" }, { status: 403 })
     }

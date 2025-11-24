@@ -52,8 +52,8 @@ export async function GET(
     }
 
     // Check if user is member
-    const isMember = group.members.some((m) => m.userId === userId)
-    const userRole = group.members.find((m) => m.userId === userId)?.role || null
+    const isMember = group.members.some((m: any) => m.userId === userId)
+    const userRole = group.members.find((m: any) => m.userId === userId)?.role || null
 
     // If private group and user is not member, return 403
     if (!group.isPublic && !isMember) {

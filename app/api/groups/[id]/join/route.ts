@@ -27,7 +27,7 @@ export async function POST(
     }
 
     // Check if already a member
-    const isMember = group.members.some((m) => m.userId === userId)
+    const isMember = group.members.some((m: any) => m.userId === userId)
     if (isMember) {
       return NextResponse.json({ error: "Already a member" }, { status: 400 })
     }
@@ -75,13 +75,13 @@ export async function DELETE(
     }
 
     // Can't leave if you're the only admin
-    const member = group.members.find((m) => m.userId === userId)
+    const member = group.members.find((m: any) => m.userId === userId)
     if (!member) {
       return NextResponse.json({ error: "Not a member" }, { status: 400 })
     }
 
     if (member.role === "admin") {
-      const adminCount = group.members.filter((m) => m.role === "admin").length
+      const adminCount = group.members.filter((m: any) => m.role === "admin").length
       if (adminCount === 1) {
         return NextResponse.json(
           { error: "Cannot leave: you are the only admin. Transfer admin role first or delete the group." },
