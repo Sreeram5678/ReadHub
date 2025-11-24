@@ -91,7 +91,7 @@ export async function PUT(
       return NextResponse.json({ error: "Group not found" }, { status: 404 })
     }
 
-    const member = group.members.find((m) => m.userId === userId)
+    const member = group.members.find((m: any) => m.userId === userId)
     if (!member || (member.role !== "admin" && member.role !== "moderator")) {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
     }
@@ -138,7 +138,7 @@ export async function PUT(
       },
     })
 
-    const userRole = updatedGroup.members.find((m) => m.userId === userId)?.role || null
+    const userRole = updatedGroup.members.find((m: any) => m.userId === userId)?.role || null
 
     return NextResponse.json({ ...updatedGroup, isMember: true, userRole })
   } catch (error) {
@@ -173,7 +173,7 @@ export async function DELETE(
 
     // Only creator or admin can delete
     if (group.creatorId !== userId) {
-      const member = group.members.find((m) => m.userId === userId)
+      const member = group.members.find((m: any) => m.userId === userId)
       if (!member || member.role !== "admin") {
         return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
       }

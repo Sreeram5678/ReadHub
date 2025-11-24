@@ -32,7 +32,7 @@ export async function PUT(
 
     // Only message author, admins, or moderators can edit
     const isAuthor = message.userId === userId
-    const member = message.group.members.find((m) => m.userId === userId)
+    const member = message.group.members.find((m: any) => m.userId === userId)
     const canEdit = isAuthor || member?.role === "admin" || member?.role === "moderator"
 
     if (!canEdit) {
@@ -131,7 +131,7 @@ export async function DELETE(
 
     // Only message author, admins, or moderators can delete
     const isAuthor = message.userId === userId
-    const member = message.group.members.find((m) => m.userId === userId)
+    const member = message.group.members.find((m: any) => m.userId === userId)
     const canDelete = isAuthor || member?.role === "admin" || member?.role === "moderator"
 
     if (!canDelete) {
