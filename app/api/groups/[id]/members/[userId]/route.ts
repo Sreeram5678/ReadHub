@@ -15,7 +15,7 @@ export async function PUT(
     const { id, userId } = await params
     const currentUserId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -50,7 +50,7 @@ export async function PUT(
     }
 
     if (action === "remove") {
-      await db.groupMember.delete({
+      await (db as any).groupMember.delete({
         where: {
           groupId_userId: {
             groupId: id,
@@ -62,7 +62,7 @@ export async function PUT(
     }
 
     if (role) {
-      await db.groupMember.update({
+      await (db as any).groupMember.update({
         where: {
           groupId_userId: {
             groupId: id,

@@ -19,7 +19,7 @@ export async function GET(
     const limit = parseInt(searchParams.get("limit") || "50")
     const cursor = searchParams.get("cursor")
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -43,7 +43,7 @@ export async function GET(
       where.id = { lt: cursor }
     }
 
-    const messages = await db.groupMessage.findMany({
+    const messages = await (db as any).groupMessage.findMany({
       where,
       include: {
         user: {
@@ -111,7 +111,7 @@ export async function POST(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -134,7 +134,7 @@ export async function POST(
       return NextResponse.json({ error: "Message content is required" }, { status: 400 })
     }
 
-    const message = await db.groupMessage.create({
+    const message = await (db as any).groupMessage.create({
       data: {
         groupId: id,
         userId: userId,
@@ -194,7 +194,7 @@ export async function POST(
     })
 
     // Update group's updatedAt to reflect new message
-    await db.group.update({
+    await (db as any).group.update({
       where: { id },
       data: { updatedAt: new Date() },
     })

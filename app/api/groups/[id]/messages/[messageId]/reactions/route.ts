@@ -23,7 +23,7 @@ export async function POST(
     }
 
     // Check if reaction already exists
-    const existingReaction = await db.groupMessageReaction.findUnique({
+    const existingReaction = await (db as any).groupMessageReaction.findUnique({
       where: {
         messageId_userId_emoji: {
           messageId: messageId,
@@ -35,7 +35,7 @@ export async function POST(
 
     if (existingReaction) {
       // Remove reaction if already exists (toggle)
-      await db.groupMessageReaction.delete({
+      await (db as any).groupMessageReaction.delete({
         where: {
           messageId_userId_emoji: {
             messageId: messageId,
@@ -48,7 +48,7 @@ export async function POST(
     }
 
     // Add reaction
-    await db.groupMessageReaction.create({
+    await (db as any).groupMessageReaction.create({
       data: {
         messageId: messageId,
         userId: userId,

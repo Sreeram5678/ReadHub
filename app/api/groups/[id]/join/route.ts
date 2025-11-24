@@ -15,7 +15,7 @@ export async function POST(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -35,7 +35,7 @@ export async function POST(
     // If private group, need invite (for now, allow join if they have the link)
     // In future, can add invite system
 
-    await db.groupMember.create({
+    await (db as any).groupMember.create({
       data: {
         groupId: id,
         userId: userId,
@@ -63,7 +63,7 @@ export async function DELETE(
     const { id } = await params
     const userId = session.user.id
 
-    const group = await db.group.findUnique({
+    const group = await (db as any).group.findUnique({
       where: { id },
       include: {
         members: true,
@@ -90,7 +90,7 @@ export async function DELETE(
       }
     }
 
-    await db.groupMember.delete({
+    await (db as any).groupMember.delete({
       where: {
         groupId_userId: {
           groupId: id,
