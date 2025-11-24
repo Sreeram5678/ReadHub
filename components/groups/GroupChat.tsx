@@ -163,12 +163,14 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
       const response = await fetch(`/api/groups/${groupId}/messages?limit=100`)
       if (response.ok) {
         const data = await response.json()
-        setMessages(data)
+        setMessages(Array.isArray(data) ? data : [])
       } else {
         console.error("Failed to fetch messages:", response.status, response.statusText)
+        setMessages([])
       }
     } catch (error) {
       console.error("Error fetching messages:", error)
+      setMessages([])
     }
   }
 
@@ -266,6 +268,14 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
 
   const commonReactions = ["👍", "❤️", "😂", "😮", "😢", "🔥"]
 
+  if (!groupId) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-200px)] items-center justify-center p-4">
+        <p className="text-muted-foreground">Invalid group ID</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-200px)]">
         <div className="flex-1 overflow-y-auto space-y-4 p-4">
@@ -274,30 +284,32 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
               No messages yet. Start the conversation!
             </div>
           ) : (
-            messages.map((message) => (
-            <div key={message.id} className="flex gap-3 group">
-              <div className="flex-shrink-0">
-                    {message.user.image ? (
-                      <img
-                        src={message.user.image}
-                        alt={message.user.name || message.user.email || "User"}
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs">
-                        {((message.user.name || message.user.email || "U")[0] || "U").toUpperCase()}
-                      </div>
-                    )}
+            messages.map((message) => {
+              if (!message || !message.user) return null
+              return (
+              <div key={message.id} className="flex gap-3 group">
+                <div className="flex-shrink-0">
+                      {message.user?.image ? (
+                        <img
+                          src={message.user.image}
+                          alt={message.user?.name || message.user?.email || "User"}
+                          className="w-8 h-8 rounded-full"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs">
+                          {((message.user?.name || message.user?.email || "U")[0] || "U").toUpperCase()}
+                        </div>
+                      )}
               </div>
               <div className="flex-1 min-w-0">
-                {message.replyTo && (
+                {message.replyTo && message.replyTo.user && (
                   <div className="text-xs text-muted-foreground mb-1 pl-3 border-l-2 border-muted">
-                    Replying to {message.replyTo.user.name || message.replyTo.user.email}
+                    Replying to {message.replyTo.user?.name || message.replyTo.user?.email || "Unknown"}
                   </div>
                 )}
                 <div className="flex items-baseline gap-2">
                   <span className="font-semibold text-sm">
-                    {message.user.name || message.user.email}
+                    {message.user?.name || message.user?.email || "Unknown"}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {message.createdAt ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true }) : "Just now"}
@@ -426,7 +438,8 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
                 )}
               </div>
             </div>
-          ))
+            )
+            })
         )}
         <div ref={messagesEndRef} />
       </div>

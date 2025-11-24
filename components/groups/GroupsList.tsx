@@ -47,13 +47,12 @@ export function GroupsList() {
     setLoading(true)
     try {
       let url = "/api/groups?"
-      if (filter === "my") {
-        url += "userId=current"
-      } else if (filter === "public") {
+      if (filter === "public") {
         url += "isPublic=true"
       } else if (filter === "private") {
         url += "isPublic=false"
       }
+      // For "my" filter, we'll filter client-side after fetching
       if (topic) {
         url += `&topic=${encodeURIComponent(topic)}`
       }
@@ -65,9 +64,13 @@ export function GroupsList() {
       if (response.ok) {
         const data = await response.json()
         setGroups(data)
+      } else {
+        console.error("Failed to fetch groups:", response.status, response.statusText)
+        setGroups([])
       }
     } catch (error) {
       console.error("Error fetching groups:", error)
+      setGroups([])
     } finally {
       setLoading(false)
     }
@@ -104,6 +107,14 @@ export function GroupsList() {
   }
 
   const filteredGroups = groups.filter((group) => {
+    // Filter by "my groups" if selected
+    if (filter === "my") {
+      if (!group.isMember) {
+        return false
+      }
+    }
+    
+    // Filter by search query
     if (search) {
       const searchLower = search.toLowerCase()
       return (

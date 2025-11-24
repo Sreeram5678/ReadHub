@@ -120,21 +120,23 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
             <div className="text-sm">
               <div className="text-muted-foreground mb-2">Members:</div>
               <div className="space-y-1 max-h-48 overflow-y-auto">
-                {group.members.map((member: { id: string; userId: string; role: string; user: { id: string; name: string | null; email: string; image: string | null } }) => (
+                {group.members.map((member: { id: string; userId: string; role: string; user: { id: string; name: string | null; email: string; image: string | null } }) => {
+                  if (!member || !member.user) return null
+                  return (
                   <div key={member.id} className="flex items-center gap-2 text-sm">
-                    {member.user.image ? (
+                    {member.user?.image ? (
                       <img
                         src={member.user.image}
-                        alt={member.user.name || member.user.email}
+                        alt={member.user?.name || member.user?.email || "User"}
                         className="w-6 h-6 rounded-full"
                       />
                     ) : (
                       <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
-                        {(member.user.name || member.user.email)[0].toUpperCase()}
+                        {((member.user?.name || member.user?.email || "U")[0] || "U").toUpperCase()}
                       </div>
                     )}
                     <span className="flex-1 truncate">
-                      {member.user.name || member.user.email}
+                      {member.user?.name || member.user?.email || "Unknown"}
                     </span>
                     {member.role !== "member" && (
                       <span className="text-xs text-muted-foreground capitalize">
@@ -142,7 +144,8 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
                       </span>
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </CardContent>
