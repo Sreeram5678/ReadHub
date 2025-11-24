@@ -91,12 +91,13 @@ export function LogReadingForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full sm:w-auto">
           <BookOpen className="mr-2 h-4 w-4" />
-          Log Reading
+          <span className="hidden sm:inline">Log Reading</span>
+          <span className="sm:hidden">Log</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="mx-4 max-w-[calc(100vw-2rem)]">
         <DialogHeader>
           <DialogTitle>Log Reading</DialogTitle>
           <DialogDescription>
