@@ -28,6 +28,10 @@ model User {
   challengeParticipants ChallengeParticipant[]
   readingSessions ReadingSession[]
   reminders     Reminder[]
+  createdGroups Group[]       @relation("GroupCreator")
+  groupMembers  GroupMember[]
+  groupMessages GroupMessage[]
+  messageReactions GroupMessageReaction[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -206,4 +210,88 @@ model Reminder {
 
   @@index([userId])
   @@index([isActive])
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(true)
+  creatorId   String
+  topic       String?  // Optional topic/category
+  image       String?  // Group image/avatar
+  creator     User     @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  messages    GroupMessage[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([isPublic])
+  @@index([topic])
+}
+
+model GroupMember {
+  id          String   @id @default(cuid())
+  groupId     String
+  userId      String
+  role        String   @default("member") // member, moderator, admin
+  joinedAt    DateTime @default(now())
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([role])
+}
+
+model GroupMessage {
+  id          String   @id @default(cuid())
+  groupId     String
+  userId      String
+  content     String
+  replyToId   String?  // For replies to other messages
+  replyTo     GroupMessage? @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     GroupMessage[] @relation("MessageReplies")
+  editedAt    DateTime?
+  attachments GroupMessageAttachment[]
+  reactions   GroupMessageReaction[]
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([replyToId])
+}
+
+model GroupMessageAttachment {
+  id          String   @id @default(cuid())
+  messageId   String
+  type        String   // image, file, etc.
+  url         String
+  filename    String?
+  size        Int?     // Size in bytes
+  message     GroupMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model GroupMessageReaction {
+  id          String   @id @default(cuid())
+  messageId   String
+  userId      String
+  emoji       String   // Emoji or reaction type
+  message     GroupMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
 }
