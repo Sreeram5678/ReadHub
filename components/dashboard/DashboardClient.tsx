@@ -1,13 +1,15 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
+import { EditReadingLogForm } from "@/components/reading/EditReadingLogForm"
 import { ReadingGoals } from "./ReadingGoals"
 import { ReadingTrendsChart } from "./ReadingTrendsChart"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
-import { Flame } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Flame, Pencil } from "lucide-react"
 import dynamic from "next/dynamic"
 
 // Lazy load the chart component for better initial load performance
@@ -87,11 +89,14 @@ export function DashboardClient({
   readingGoals,
 }: DashboardProps) {
   const router = useRouter()
+  const [editingLogId, setEditingLogId] = useState<string | null>(null)
   
   // Use router.refresh() instead of window.location.reload() for faster refresh
   const refreshData = () => {
     router.refresh()
   }
+
+  const editingLog = editingLogId ? recentLogs.find(log => log.id === editingLogId) : null
 
   // Memoize date calculations to avoid recalculating on every render
   const { weeklyPages, monthlyPages } = useMemo(() => {
@@ -232,16 +237,38 @@ export function DashboardClient({
                   key={log.id}
                   className="flex items-center justify-between border-b pb-2"
                 >
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{log.book.title}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(log.date).toLocaleDateString()}
                     </p>
                   </div>
-                  <p className="font-semibold">{log.pagesRead} pages</p>
+                  <div className="flex items-center gap-3">
+                    <p className="font-semibold">{log.pagesRead} pages</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingLogId(log.id)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
+          )}
+          {editingLog && (
+            <EditReadingLogForm
+              log={editingLog}
+              open={editingLogId !== null}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setEditingLogId(null)
+                }
+              }}
+              onLogUpdated={refreshData}
+            />
           )}
         </CardContent>
       </Card>
