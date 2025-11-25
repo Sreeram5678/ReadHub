@@ -6,7 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Play, Pause, Square, Clock } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Play, Pause, Square, Clock, Settings } from "lucide-react"
 
 interface Book {
   id: string
@@ -25,8 +34,12 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
   const [selectedBookId, setSelectedBookId] = useState<string>("")
   const [pagesRead, setPagesRead] = useState("")
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(new Set(books.map(b => b.id)))
+  const [showSettings, setShowSettings] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const startTimeRef = useRef<Date | null>(null)
+
+  const availableBooks = books.filter(book => selectedBookIds.has(book.id))
 
   useEffect(() => {
     if (isRunning && !isPaused) {
@@ -119,16 +132,67 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
     }
   }
 
+  const toggleBookSelection = (bookId: string) => {
+    const newSelection = new Set(selectedBookIds)
+    if (newSelection.has(bookId)) {
+      newSelection.delete(bookId)
+    } else {
+      newSelection.add(bookId)
+    }
+    setSelectedBookIds(newSelection)
+    if (selectedBookId === bookId && !newSelection.has(bookId)) {
+      setSelectedBookId("")
+    }
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Reading Session Timer
-        </CardTitle>
-        <CardDescription>Track your reading time and pages</CardDescription>
+    <Card className="border-2">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              Reading Timer
+            </CardTitle>
+            <CardDescription className="mt-1">Track your reading sessions</CardDescription>
+          </div>
+          <Dialog open={showSettings} onOpenChange={setShowSettings}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select Books</DialogTitle>
+                <DialogDescription>
+                  Choose which books to show in the dropdown
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {books.map((book) => (
+                  <div key={book.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
+                    <Checkbox
+                      id={book.id}
+                      checked={selectedBookIds.has(book.id)}
+                      onCheckedChange={() => toggleBookSelection(book.id)}
+                    />
+                    <label
+                      htmlFor={book.id}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                    >
+                      {book.title} by {book.author}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <div>
           <Label htmlFor="book">Select Book</Label>
           <Select
@@ -136,22 +200,26 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
             onValueChange={setSelectedBookId}
             disabled={isRunning}
           >
-            <SelectTrigger id="book">
+            <SelectTrigger id="book" className="mt-2">
               <SelectValue placeholder="Choose a book" />
             </SelectTrigger>
             <SelectContent>
-              {books.map((book) => (
-                <SelectItem key={book.id} value={book.id}>
-                  {book.title} by {book.author}
-                </SelectItem>
-              ))}
+              {availableBooks.length === 0 ? (
+                <SelectItem value="" disabled>No books selected</SelectItem>
+              ) : (
+                availableBooks.map((book) => (
+                  <SelectItem key={book.id} value={book.id}>
+                    {book.title} by {book.author}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="text-center py-4">
-          <div className="text-4xl font-mono font-bold">{formatTime(seconds)}</div>
-          <p className="text-sm text-muted-foreground mt-2">Reading time</p>
+        <div className="text-center py-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border-2 border-primary/20">
+          <div className="text-5xl font-mono font-bold text-primary mb-2">{formatTime(seconds)}</div>
+          <p className="text-sm font-medium text-muted-foreground">Reading time</p>
         </div>
 
         {isRunning && (

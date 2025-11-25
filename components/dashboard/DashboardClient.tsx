@@ -8,6 +8,12 @@ import { EditReadingLogForm } from "@/components/reading/EditReadingLogForm"
 import { ReadingGoals } from "./ReadingGoals"
 import { ReadingTrendsChart } from "./ReadingTrendsChart"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
+import { ReadingSpeedTest } from "@/components/reading/ReadingSpeedTest"
+import { DailyQuote } from "@/components/reading/DailyQuote"
+import { QuickReadingLog } from "@/components/reading/QuickReadingLog"
+import { ReadingStreakHeatmap } from "./ReadingStreakHeatmap"
+import { AchievementsList } from "@/components/achievements/AchievementsList"
+import { QuickStatsWidget } from "./QuickStatsWidget"
 import { Button } from "@/components/ui/button"
 import { Flame, Pencil } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -62,6 +68,7 @@ interface ReadingTrend {
 interface DashboardProps {
   totalBooks: number
   completedBooks: number
+  completionPercentage: number
   totalPagesRead: number
   todayPages: number
   recentLogs: ReadingLog[]
@@ -77,6 +84,7 @@ interface DashboardProps {
 export function DashboardClient({
   totalBooks,
   completedBooks,
+  completionPercentage,
   totalPagesRead,
   todayPages,
   recentLogs,
@@ -153,9 +161,21 @@ export function DashboardClient({
             <div className="text-2xl md:text-3xl font-bold">{totalBooks}</div>
             {completedBooks > 0 && (
               <p className="text-sm text-muted-foreground mt-1">
-                {completedBooks} completed
+                {completedBooks} completed ({completionPercentage}%)
               </p>
             )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">Completion Rate</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Books finished</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl md:text-3xl font-bold">{completionPercentage}%</div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {completedBooks} of {totalBooks} books
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -218,6 +238,20 @@ export function DashboardClient({
         <ReadingTrendsChartLazy trends={readingTrends} />
         <ReadingSessionTimer books={books} />
       </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <DailyQuote />
+        <QuickReadingLog books={books} onLogAdded={refreshData} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <ReadingSpeedTest />
+        <QuickStatsWidget />
+      </div>
+
+      <ReadingStreakHeatmap />
+
+      <AchievementsList />
 
       <Card>
         <CardHeader>
