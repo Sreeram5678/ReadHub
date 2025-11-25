@@ -35,6 +35,12 @@ model User {
   readingSpeedTests ReadingSpeedTest[]
   quotes        Quote[]
   achievements  Achievement[]
+  ratings       Rating[]
+  chapterNotes  ChapterNote[]
+  bookReads     BookRead[]
+  readingJournals ReadingJournal[]
+  vocabularies  Vocabulary[]
+  bookLoans     BookLoan[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -101,17 +107,31 @@ model Book {
   currentPage Int          @default(0)
   initialPages Int         @default(0)
   status      String       @default("reading")
+  priority    Int?         // Priority for TBR shelf (lower = higher priority)
   completedAt DateTime?
+  // Series tracking
+  seriesName  String?
+  seriesNumber Int?        // Book number in series (e.g., 1, 2, 3)
+  // DNF tracking
+  dnfReason   String?      // Reason for Did Not Finish
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   readingLogs ReadingLog[]
   readingSessions ReadingSession[]
   quotes      Quote[]
   achievements Achievement[]
+  ratings     Rating[]
+  chapterNotes ChapterNote[]
+  bookReads   BookRead[]
+  readingJournals ReadingJournal[]
+  vocabularies Vocabulary[]
+  bookLoans   BookLoan[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([userId, status, priority])
+  @@index([userId, seriesName])
 }
 
 model ReadingLog {
@@ -345,4 +365,121 @@ model Achievement {
   @@unique([userId, type, milestone])
   @@index([userId])
   @@index([type])
+}
+
+// Multi-dimensional ratings
+model Rating {
+  id            String   @id @default(cuid())
+  userId        String
+  bookId        String
+  overallRating Int?      // Overall rating (1-5)
+  plotRating    Int?      // Plot rating (1-5)
+  characterRating Int?    // Character rating (1-5)
+  writingRating Int?      // Writing style rating (1-5)
+  pacingRating  Int?      // Pacing rating (1-5)
+  review         String?   // Written review
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book           Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, bookId])
+  @@index([userId])
+  @@index([bookId])
+}
+
+// Chapter notes and annotations
+model ChapterNote {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String
+  chapterNumber Int?
+  chapterTitle String?
+  note        String
+  pageNumber  Int?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([bookId, chapterNumber])
+}
+
+// Re-read tracking
+model BookRead {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String
+  readNumber  Int      // 1st read, 2nd read, etc.
+  startedAt   DateTime
+  completedAt DateTime?
+  rating      Int?     // Rating for this specific read
+  notes       String?  // Notes about this read
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([userId, bookId, readNumber])
+}
+
+// Reading journal entries
+model ReadingJournal {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String?
+  entry       String   // Journal entry text
+  mood        String?  // Reading mood (excited, relaxed, etc.)
+  date        DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([userId, date])
+}
+
+// Vocabulary list
+model Vocabulary {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String?
+  word        String
+  definition  String?
+  pageNumber  Int?
+  context     String?  // Sentence where word was found
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([userId, word])
+}
+
+// Book lending tracker
+model BookLoan {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String
+  borrowerName String  // Name of person who borrowed
+  borrowerEmail String? // Email if available
+  loanedAt    DateTime @default(now())
+  returnedAt  DateTime?
+  notes       String?  // Notes about the loan
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([userId, returnedAt])
 }

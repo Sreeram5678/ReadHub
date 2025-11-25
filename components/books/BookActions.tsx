@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Trash2, Edit, CheckCircle2 } from "lucide-react"
+import { Trash2, Edit, CheckCircle2, BookOpen } from "lucide-react"
 
 interface Book {
   id: string
@@ -116,11 +116,87 @@ export function BookActions({
     }
   }
 
+  const handleMoveToTBR = async () => {
+    try {
+      const response = await fetch(`/api/books/${book.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "tbr" }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to move book to TBR")
+      }
+
+      if (onBookUpdated) {
+        onBookUpdated()
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Error moving book to TBR:", error)
+      alert("Failed to move book to TBR. Please try again.")
+    }
+  }
+
+  const handleMoveToReading = async () => {
+    try {
+      const response = await fetch(`/api/books/${book.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "reading" }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to move book to reading")
+      }
+
+      if (onBookUpdated) {
+        onBookUpdated()
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Error moving book to reading:", error)
+      alert("Failed to move book to reading. Please try again.")
+    }
+  }
+
+  const handleMarkDNF = async () => {
+    const reason = prompt("Why did you stop reading this book? (Optional)")
+    try {
+      const response = await fetch(`/api/books/${book.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          status: "dnf",
+          dnfReason: reason || null,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to mark book as DNF")
+      }
+
+      if (onBookUpdated) {
+        onBookUpdated()
+      } else {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Error marking book as DNF:", error)
+      alert("Failed to mark book as DNF. Please try again.")
+    }
+  }
+
   const isCompleted = book.status === "completed"
+  const isTBR = book.status === "tbr"
+  const isReading = book.status === "reading"
+  const isDNF = book.status === "dnf"
 
   return (
     <div className="flex gap-1">
-      {!isCompleted && (
+      {!isCompleted && !isTBR && (
         <Button
           variant="ghost"
           size="icon"
@@ -129,6 +205,39 @@ export function BookActions({
           title="Mark as completed"
         >
           <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      )}
+      {!isTBR && !isCompleted && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleMoveToTBR}
+          title="Move to TBR"
+        >
+          <BookOpen className="h-4 w-4" />
+        </Button>
+      )}
+      {isTBR && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleMoveToReading}
+          title="Start reading"
+        >
+          <BookOpen className="h-4 w-4" />
+        </Button>
+      )}
+      {!isDNF && !isCompleted && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleMarkDNF}
+          title="Mark as Did Not Finish"
+        >
+          <span className="text-xs">DNF</span>
         </Button>
       )}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

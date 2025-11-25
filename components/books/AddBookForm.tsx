@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,6 +28,9 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
     author: "",
     totalPages: "",
     initialPages: "",
+    status: "reading",
+    seriesName: "",
+    seriesNumber: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +48,7 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
         throw new Error("Failed to add book")
       }
 
-      setFormData({ title: "", author: "", totalPages: "", initialPages: "" })
+      setFormData({ title: "", author: "", totalPages: "", initialPages: "", status: "reading", seriesName: "", seriesNumber: "" })
       setOpen(false)
       onBookAdded()
     } catch (error) {
@@ -112,6 +122,51 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
             <p className="text-xs text-muted-foreground">
               If you've already started reading this book, enter the number of pages you've completed.
             </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData({ ...formData, status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="reading">Currently Reading</SelectItem>
+                <SelectItem value="tbr">To Be Read (TBR)</SelectItem>
+                <SelectItem value="dnf">Did Not Finish (DNF)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Add to your reading list or TBR shelf
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="seriesName">Series Name (Optional)</Label>
+              <Input
+                id="seriesName"
+                value={formData.seriesName}
+                onChange={(e) =>
+                  setFormData({ ...formData, seriesName: e.target.value })
+                }
+                placeholder="e.g., Harry Potter"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seriesNumber">Book Number (Optional)</Label>
+              <Input
+                id="seriesNumber"
+                type="number"
+                value={formData.seriesNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, seriesNumber: e.target.value })
+                }
+                placeholder="e.g., 1, 2, 3"
+                min="1"
+              />
+            </div>
           </div>
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Adding..." : "Add Book"}
