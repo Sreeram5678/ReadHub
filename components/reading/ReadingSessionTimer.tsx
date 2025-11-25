@@ -155,7 +155,7 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               Reading Timer
-            </CardTitle>
+        </CardTitle>
             <CardDescription className="mt-1">Track your reading sessions</CardDescription>
           </div>
           <Dialog open={showSettings} onOpenChange={setShowSettings}>
@@ -208,9 +208,9 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
                 <SelectItem value="" disabled>No books selected</SelectItem>
               ) : (
                 availableBooks.map((book) => (
-                  <SelectItem key={book.id} value={book.id}>
-                    {book.title} by {book.author}
-                  </SelectItem>
+                <SelectItem key={book.id} value={book.id}>
+                  {book.title} by {book.author}
+                </SelectItem>
                 ))
               )}
             </SelectContent>
