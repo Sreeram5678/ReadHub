@@ -15,7 +15,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { title, author, totalPages, initialPages, status } = body
+    const { title, author, totalPages, initialPages, status, priority, seriesName, seriesNumber, dnfReason } = body
 
     const book = await db.book.findUnique({
       where: { id },
@@ -30,6 +30,9 @@ export async function PUT(
     if (author !== undefined) updateData.author = author
     if (totalPages !== undefined) updateData.totalPages = parseInt(totalPages)
     if (initialPages !== undefined) updateData.initialPages = parseInt(initialPages)
+    if (seriesName !== undefined) updateData.seriesName = seriesName || null
+    if (seriesNumber !== undefined) updateData.seriesNumber = seriesNumber ? parseInt(seriesNumber) : null
+    if (dnfReason !== undefined) updateData.dnfReason = dnfReason || null
     if (status !== undefined) {
       updateData.status = status
       if (status === "completed" && !book.completedAt) {
@@ -37,6 +40,25 @@ export async function PUT(
       } else if (status !== "completed") {
         updateData.completedAt = null
       }
+      
+      // Auto-manage priority based on status
+      if (status === "tbr" && priority === undefined && book.priority === null) {
+        // Moving to TBR without priority: assign next highest
+        const maxPriorityBook = await db.book.findFirst({
+          where: { userId: session.user.id, status: "tbr", id: { not: id } },
+          orderBy: { priority: "desc" },
+          select: { priority: true },
+        })
+        updateData.priority = maxPriorityBook?.priority !== null && maxPriorityBook?.priority !== undefined
+          ? maxPriorityBook.priority + 1
+          : 1
+      } else if (status !== "tbr") {
+        // Moving away from TBR: clear priority
+        updateData.priority = null
+      }
+    }
+    if (priority !== undefined) {
+      updateData.priority = priority === null || priority === "" ? null : parseInt(priority)
     }
 
     const updatedBook = await db.book.update({

@@ -40,6 +40,20 @@ export default async function ProtectedLayout({
               My Books
             </Link>
             <Link
+              href="/tbr"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              TBR
+            </Link>
+            <Link
+              href="/series"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              prefetch={true}
+            >
+              Series
+            </Link>
+            <Link
               href="/leaderboard"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               prefetch={true}
