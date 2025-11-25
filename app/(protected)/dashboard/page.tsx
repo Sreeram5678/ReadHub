@@ -104,6 +104,9 @@ export default async function DashboardPage() {
   // Calculate counts from fetched data (faster than separate queries)
   const totalBooks = booksData.length
   const completedBooks = booksData.filter(b => b.status === "completed").length
+  const completionPercentage = totalBooks > 0 
+    ? Math.round((completedBooks / totalBooks) * 100) 
+    : 0
   const initialPagesSum = booksData.reduce(
     (sum, book) => sum + (book.initialPages || 0),
     0
@@ -121,6 +124,7 @@ export default async function DashboardPage() {
       <DashboardClient
         totalBooks={totalBooks}
         completedBooks={completedBooks}
+        completionPercentage={completionPercentage}
         totalPagesRead={totalPagesRead}
         todayPages={todayPages._sum.pagesRead || 0}
         recentLogs={recentLogs}

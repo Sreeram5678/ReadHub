@@ -4,6 +4,8 @@ import { useState } from "react"
 import { AddBookForm } from "./AddBookForm"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookActions } from "./BookActions"
+import { ProgressRing } from "@/components/ui/progress-ring"
+import { BookTimeEstimate } from "./BookTimeEstimate"
 
 interface Book {
   id: string
@@ -27,6 +29,11 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
     }
   }
 
+  const completedBooks = books.filter((b) => b.status === "completed").length
+  const completionPercentage = books.length > 0 
+    ? Math.round((completedBooks / books.length) * 100) 
+    : 0
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -35,6 +42,11 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
           <p className="text-muted-foreground">
             Manage your reading list and track progress
           </p>
+          {books.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-1">
+              You've completed {completedBooks} out of {books.length} books ({completionPercentage}%)
+            </p>
+          )}
         </div>
         <AddBookForm onBookAdded={refreshBooks} />
       </div>
@@ -55,6 +67,7 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
               (sum, log) => sum + log.pagesRead,
               0
             )
+            const remainingPages = Math.max(0, book.totalPages - totalPagesRead)
             const progress = (totalPagesRead / book.totalPages) * 100
             const isCompleted = book.status === "completed"
 
@@ -75,24 +88,27 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">
-                        {totalPagesRead} / {book.totalPages} pages
-                      </span>
+                  <div className="flex items-center gap-6">
+                    <ProgressRing
+                      value={totalPagesRead}
+                      max={book.totalPages}
+                      size={100}
+                      completed={isCompleted}
+                    />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="font-medium">
+                          {totalPagesRead} / {book.totalPages} pages
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {isCompleted ? "100% complete" : `${Math.round(progress)}% complete`}
+                      </p>
+                      {!isCompleted && remainingPages > 0 && (
+                        <BookTimeEstimate remainingPages={remainingPages} />
+                      )}
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={`h-full transition-all ${
-                          isCompleted ? "bg-green-600" : "bg-primary"
-                        }`}
-                        style={{ width: `${Math.min(progress, 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {isCompleted ? "100% complete" : `${Math.round(progress)}% complete`}
-                    </p>
                   </div>
                 </CardContent>
               </Card>
