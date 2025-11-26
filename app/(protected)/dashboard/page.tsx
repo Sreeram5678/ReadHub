@@ -8,7 +8,11 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 
 const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
-    where: { userId },
+    where: { 
+      userId,
+      // Exclude completed books from dashboard dropdowns (log form, timer, quick log)
+      status: { not: "completed" },
+    },
     select: {
       id: true,
       title: true,

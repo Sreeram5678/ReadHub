@@ -45,6 +45,17 @@ export function ReadingStreakHeatmap() {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    // Helper to format a Date as YYYY-MM-DD in the user's local timezone.
+    // This must stay in sync with the API's date formatting.
+    const formatLocalDate = (date: Date) => {
+      const d = new Date(date)
+      d.setHours(0, 0, 0, 0)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, "0")
+      const day = String(d.getDate()).padStart(2, "0")
+      return `${year}-${month}-${day}`
+    }
+
     const dataMap = new Map<string, number>()
     data.forEach((item) => {
       dataMap.set(item.date, item.pages)
@@ -58,7 +69,7 @@ export function ReadingStreakHeatmap() {
     for (let i = displayDays - 1; i >= 0; i--) {
       const date = new Date(today)
       date.setDate(date.getDate() - i)
-      const dateString = date.toISOString().split("T")[0]
+      const dateString = formatLocalDate(date)
       grid.push({
         date,
         pages: dataMap.get(dateString) || 0,
