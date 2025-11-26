@@ -46,7 +46,7 @@ export function DailyQuote() {
             Daily Quote
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="min-h-[220px] flex items-center">
           <p className="text-muted-foreground">Loading quote...</p>
         </CardContent>
       </Card>
@@ -75,7 +75,7 @@ export function DailyQuote() {
         </div>
         <CardDescription>Your daily reading inspiration</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
         {showAddForm && (
           <AddQuoteForm
             onQuoteAdded={() => {

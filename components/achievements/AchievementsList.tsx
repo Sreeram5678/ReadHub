@@ -66,8 +66,8 @@ export function AchievementsList() {
           </CardTitle>
           <CardDescription>Your reading milestones</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-4">
+        <CardContent className="min-h-[220px] flex items-center justify-center">
+          <p className="text-muted-foreground text-center">
             No achievements yet. Keep reading to unlock milestones!
           </p>
         </CardContent>
@@ -84,8 +84,8 @@ export function AchievementsList() {
         </CardTitle>
         <CardDescription>Your reading milestones</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="min-h-[220px] flex flex-col">
+        <div className="space-y-3 flex-1">
           {streakAchievements.map((achievement) => (
             <div
               key={achievement.id}

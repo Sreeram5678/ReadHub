@@ -82,7 +82,7 @@ export function QuickReadingLog({ books, onLogAdded }: QuickReadingLogProps) {
         </CardTitle>
         <CardDescription>One-tap reading log</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
         {selectedBook && (
           <div className="text-sm">
             <p className="text-muted-foreground">Current book:</p>
