@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useState, useEffect } from "react"
 import { Search, UserPlus, Check, X } from "lucide-react"
+import { UserAvatar } from "./UserAvatar"
 
 interface LeaderboardEntry {
   id: string
@@ -151,9 +152,7 @@ export function LeaderboardPageClient({
                   {searchResults.map((user) => (
                     <div key={user.id} className="flex items-center justify-between p-2 border rounded">
                       <div className="flex items-center gap-2">
-                        {user.image && (
-                          <img src={user.image} alt={user.name} className="h-8 w-8 rounded-full" />
-                        )}
+                        <UserAvatar name={user.name} image={user.image} />
                         <div>
                           <p className="text-sm font-medium">{user.name}</p>
                           <p className="text-xs text-muted-foreground">{user.email}</p>

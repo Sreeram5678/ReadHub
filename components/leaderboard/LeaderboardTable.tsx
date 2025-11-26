@@ -1,7 +1,7 @@
-"use client"
-
-import { Trophy, Medal, Award } from "lucide-react"
-import Image from "next/image"
+ "use client"
+ 
+ import { Trophy, Medal, Award } from "lucide-react"
+ import { UserAvatar } from "./UserAvatar"
 
 interface LeaderboardEntry {
   id: string
@@ -51,15 +51,7 @@ export function LeaderboardTable({
                 {getRankIcon(user.rank)}
                 <span className="font-bold text-lg w-8">#{user.rank}</span>
               </div>
-              {user.image && (
-                <Image
-                  src={user.image}
-                  alt={user.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              )}
+              <UserAvatar name={user.name} image={user.image} />
               <div>
                 <p className="font-medium">
                   {user.name}

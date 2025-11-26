@@ -13,7 +13,13 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Settings2, RotateCcw } from "lucide-react"
-import { WidgetInstance, WidgetConfig, getDefaultWidgetInstances } from "./widgetsConfig"
+import {
+  WidgetInstance,
+  WidgetConfig,
+  getDefaultWidgetInstances,
+  DASHBOARD_PRESETS,
+  DashboardPresetId,
+} from "./widgetsConfig"
 
 interface WidgetCustomizationPanelProps {
   widgets: WidgetInstance[]
@@ -30,6 +36,7 @@ export function WidgetCustomizationPanel({
 }: WidgetCustomizationPanelProps) {
   const [open, setOpen] = useState(false)
   const [localWidgets, setLocalWidgets] = useState(widgets)
+  const [selectedPreset, setSelectedPreset] = useState<DashboardPresetId | null>(null)
 
   // Keep local state in sync when dialog is opened with updated props
   useEffect(() => {
@@ -71,6 +78,13 @@ export function WidgetCustomizationPanel({
     setOpen(false)
   }
 
+  const applyPreset = (presetId: DashboardPresetId) => {
+    const presetWidgets = DASHBOARD_PRESETS[presetId]
+    setSelectedPreset(presetId)
+    setLocalWidgets(presetWidgets)
+    onWidgetsChange(presetWidgets)
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -87,6 +101,27 @@ export function WidgetCustomizationPanel({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold">Presets</h3>
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["standard", "Standard"],
+                ["minimal", "Minimal"],
+                ["analytics", "Analytics"],
+                ["tools", "Tools"],
+              ] as [DashboardPresetId, string][]).map(([id, label]) => (
+                <Button
+                  key={id}
+                  type="button"
+                  variant={selectedPreset === id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => applyPreset(id)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
           {Object.entries(groupedWidgets).map(([category, configs]) => (
             <div key={category} className="space-y-3">
               <h3 className="text-sm font-semibold capitalize">{category}</h3>

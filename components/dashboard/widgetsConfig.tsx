@@ -46,6 +46,8 @@ export type WidgetId =
 
 export type WidgetSize = "small" | "medium" | "large" | "full"
 
+export type DashboardPresetId = "standard" | "minimal" | "analytics" | "tools"
+
 export interface WidgetConfig {
   id: WidgetId
   title: string
@@ -54,7 +56,9 @@ export interface WidgetConfig {
   defaultVisible: boolean
   category: "stats" | "activity" | "tools" | "goals"
   component: ComponentType<any>
-  gridCols?: number // Number of columns this widget spans (1-4)
+  gridCols?: number // Default number of columns this widget spans (1-4)
+  minCols?: number  // Minimum columns when resizing
+  maxCols?: number  // Maximum columns when resizing
 }
 
 export interface WidgetInstance {
@@ -62,6 +66,8 @@ export interface WidgetInstance {
   visible: boolean
   order: number
   size?: WidgetSize
+  cols?: number
+  presetId?: string | null
 }
 
 export const DEFAULT_WIDGETS: WidgetConfig[] = [
@@ -73,6 +79,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "stats",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: ReadingStreakWidget,
   },
   {
@@ -82,7 +90,9 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultSize: "large",
     defaultVisible: true,
     category: "stats",
-    gridCols: 1,
+    gridCols: 4,
+    minCols: 4,
+    maxCols: 4,
     component: StatsWidget,
   },
   {
@@ -92,7 +102,9 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultSize: "medium",
     defaultVisible: true,
     category: "stats",
-    gridCols: 1,
+    gridCols: 4,
+    minCols: 4,
+    maxCols: 4,
     component: WeeklyMonthlyWidget,
   },
   {
@@ -103,6 +115,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "goals",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: ReadingGoals,
   },
   {
@@ -112,7 +126,9 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultSize: "large",
     defaultVisible: true,
     category: "activity",
-    gridCols: 1,
+    gridCols: 2,
+    minCols: 1,
+    maxCols: 4,
     component: ReadingTrendsChartLazy,
   },
   {
@@ -123,6 +139,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "tools",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: ReadingSessionTimer,
   },
   {
@@ -133,6 +151,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "tools",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: DailyQuote,
   },
   {
@@ -143,6 +163,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "tools",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: QuickReadingLog,
   },
   {
@@ -153,6 +175,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "tools",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: ReadingSpeedTest,
   },
   {
@@ -163,6 +187,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "stats",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: QuickStatsWidget,
   },
   {
@@ -172,7 +198,9 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultSize: "full",
     defaultVisible: true,
     category: "activity",
-    gridCols: 1,
+    gridCols: 4,
+    minCols: 4,
+    maxCols: 4,
     component: ReadingStreakHeatmap,
   },
   {
@@ -183,6 +211,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: true,
     category: "activity",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: AchievementsList,
   },
   {
@@ -192,7 +222,9 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultSize: "medium",
     defaultVisible: true,
     category: "activity",
-    gridCols: 1,
+    gridCols: 2,
+    minCols: 1,
+    maxCols: 4,
     component: RecentActivityWidget,
   },
   {
@@ -203,6 +235,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: false,
     category: "stats",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: ReadingPaceWidget,
   },
   {
@@ -213,6 +247,8 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     defaultVisible: false,
     category: "activity",
     gridCols: 1,
+    minCols: 1,
+    maxCols: 2,
     component: CurrentlyReadingFocusWidget,
   },
 ]
@@ -223,6 +259,8 @@ export function getDefaultWidgetInstances(): WidgetInstance[] {
     visible: widget.defaultVisible,
     order: index,
     size: widget.defaultSize,
+    cols: widget.gridCols ?? 1,
+    presetId: null,
   }))
 }
 
@@ -234,7 +272,7 @@ export function mergeWidgetPreferences(
     return getDefaultWidgetInstances()
   }
 
-  const savedMap = new Map(savedPreferences.map((w) => [w.id, w]))
+  const configMap = new Map(defaultWidgets.map((w) => [w.id, w]))
   const result: WidgetInstance[] = []
 
   // First, add saved preferences in their saved order
@@ -242,26 +280,108 @@ export function mergeWidgetPreferences(
   savedPreferences
     .sort((a, b) => a.order - b.order)
     .forEach((saved) => {
+      const config = configMap.get(saved.id)
       result.push({
         id: saved.id,
         visible: saved.visible,
         order: result.length,
-        size: saved.size,
+        size: saved.size ?? config?.defaultSize,
+        cols: saved.cols ?? config?.gridCols ?? 1,
+        presetId: saved.presetId ?? null,
       })
     })
 
   // Then, add any new widgets that weren't in saved preferences
-  defaultWidgets.forEach((widget, index) => {
+  defaultWidgets.forEach((widget) => {
     if (!savedIds.has(widget.id)) {
       result.push({
         id: widget.id,
         visible: widget.defaultVisible,
         order: result.length,
         size: widget.defaultSize,
+        cols: widget.gridCols ?? 1,
+        presetId: null,
       })
     }
   })
 
   return result
+}
+
+function createPresetInstances(
+  presetId: DashboardPresetId,
+  items: Array<{ id: WidgetId; visible?: boolean; cols?: number }>
+): WidgetInstance[] {
+  const defaults = getDefaultWidgetInstances()
+  const defaultMap = new Map(defaults.map((w) => [w.id, w]))
+
+  return items.map((item, index) => {
+    const base = defaultMap.get(item.id) ?? {
+      id: item.id,
+      visible: true,
+      order: index,
+      size: "medium" as WidgetSize,
+      cols: 1,
+      presetId: presetId,
+    }
+
+    return {
+      ...base,
+      visible: item.visible ?? base.visible,
+      cols: item.cols ?? base.cols,
+      order: index,
+      presetId,
+    }
+  })
+}
+
+export const DASHBOARD_PRESETS: Record<DashboardPresetId, WidgetInstance[]> = {
+  // Default layout: what you currently see (balanced general view)
+  standard: createPresetInstances("standard", [
+    { id: "stats", cols: 4, visible: true },
+    { id: "streak", cols: 1, visible: true },
+    { id: "weeklyMonthly", cols: 3, visible: true },
+    { id: "goals", cols: 2, visible: true },
+    { id: "trends", cols: 2, visible: true },
+    { id: "sessionTimer", cols: 2, visible: true },
+    { id: "dailyQuote", cols: 2, visible: true },
+    { id: "quickLog", cols: 2, visible: true },
+    { id: "heatmap", cols: 4, visible: true },
+    { id: "achievements", cols: 2, visible: true },
+    { id: "quickStats", cols: 2, visible: true },
+    { id: "recentActivity", cols: 2, visible: true },
+    { id: "readingPace", cols: 1, visible: false },
+    { id: "currentlyReading", cols: 2, visible: false },
+  ]),
+  // Minimal: focus on just streak, key stats, and quick log
+  minimal: createPresetInstances("minimal", [
+    { id: "streak", cols: 1, visible: true },
+    { id: "stats", cols: 3, visible: true },
+    { id: "weeklyMonthly", cols: 2, visible: true },
+    { id: "quickLog", cols: 2, visible: true },
+    { id: "recentActivity", cols: 2, visible: true },
+  ]),
+  // Analytics: heavy on charts and activity
+  analytics: createPresetInstances("analytics", [
+    { id: "stats", cols: 4, visible: true },
+    { id: "readingPace", cols: 2, visible: true },
+    { id: "weeklyMonthly", cols: 2, visible: true },
+    { id: "trends", cols: 2, visible: true },
+    { id: "heatmap", cols: 4, visible: true },
+    { id: "recentActivity", cols: 2, visible: true },
+    { id: "achievements", cols: 2, visible: true },
+  ]),
+  // Tools: focus on timers, speed tests, quotes, and quick actions
+  tools: createPresetInstances("tools", [
+    { id: "streak", cols: 1, visible: true },
+    { id: "stats", cols: 3, visible: true },
+    { id: "sessionTimer", cols: 2, visible: true },
+    { id: "readingPace", cols: 2, visible: true },
+    { id: "readingPace", cols: 2, visible: true },
+    { id: "speedTest", cols: 2, visible: true },
+    { id: "dailyQuote", cols: 2, visible: true },
+    { id: "quickLog", cols: 2, visible: true },
+    { id: "quickStats", cols: 2, visible: true },
+  ]),
 }
 
