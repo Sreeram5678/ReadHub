@@ -17,16 +17,7 @@ import {
   WidgetId,
 } from "./widgetsConfig"
 import { renderWidget } from "./widgetRenderer"
-
-interface Book {
-  id: string
-  title: string
-  author: string
-  totalPages?: number
-  currentPage?: number
-  initialPages?: number
-  readingLogs?: Array<{ pagesRead: number }>
-}
+import type { Book } from "./DashboardContext"
 
 interface ReadingLog {
   id: string
