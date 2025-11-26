@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Quote as QuoteIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { AddQuoteForm } from "./AddQuoteForm"
 
 interface DailyQuoteData {
@@ -17,7 +16,6 @@ interface DailyQuoteData {
 export function DailyQuote() {
   const [quote, setQuote] = useState<DailyQuoteData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showAddForm, setShowAddForm] = useState(false)
 
   useEffect(() => {
     fetchDailyQuote()
@@ -65,25 +63,15 @@ export function DailyQuote() {
             <QuoteIcon className="h-5 w-5" />
             Daily Quote
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAddForm(!showAddForm)}
-          >
-            {showAddForm ? "Hide" : "Add Quote"}
-          </Button>
-        </div>
-        <CardDescription>Your daily reading inspiration</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
-        {showAddForm && (
           <AddQuoteForm
             onQuoteAdded={() => {
-              setShowAddForm(false)
               fetchDailyQuote()
             }}
           />
-        )}
+        </div>
+        <CardDescription>Your daily reading inspiration</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 min-h-[220px]">
         <div className="space-y-3">
           <blockquote className="text-lg italic border-l-4 border-primary pl-4 py-2">
             "{quote.quoteText}"
