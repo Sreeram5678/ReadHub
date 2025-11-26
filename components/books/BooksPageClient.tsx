@@ -78,7 +78,7 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
               <SelectItem value="completed">Finished</SelectItem>
             </SelectContent>
           </Select>
-          <AddBookForm onBookAdded={refreshBooks} />
+        <AddBookForm onBookAdded={refreshBooks} />
         </div>
       </div>
 
