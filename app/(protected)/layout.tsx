@@ -22,7 +22,7 @@ export default async function ProtectedLayout({
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4 md:gap-6">
             <Link href="/dashboard" className="text-lg md:text-xl font-bold">
-              Book Tracker
+              ReadHub
             </Link>
             <div className="hidden md:flex gap-4">
             <Link

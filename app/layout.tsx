@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Book Reading Tracker",
+  title: "ReadHub",
   description: "Track your daily reading progress and compete with friends",
 };
 
