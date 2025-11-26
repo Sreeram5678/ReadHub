@@ -36,6 +36,8 @@ export default async function DashboardPage() {
     last30DaysLogs,
     readingGoals,
     booksForForm,
+    dashboardPreferences,
+    currentlyReadingBooks,
   ] = await Promise.all([
     // Fetch books once and calculate counts in memory (faster than 2 separate count queries)
     db.book.findMany({
@@ -99,6 +101,23 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
     }),
     getBooks(userId),
+    db.dashboardPreference.findUnique({
+      where: { userId },
+      select: { layoutJson: true },
+    }),
+    db.book.findMany({
+      where: { 
+        userId,
+        status: "reading",
+      },
+      include: {
+        readingLogs: {
+          select: { pagesRead: true },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 1,
+    }),
   ])
 
   // Calculate counts from fetched data (faster than separate queries)
@@ -119,6 +138,10 @@ export default async function DashboardPage() {
   const daysReadThisWeek = getReadingDaysInPeriod(allLogs, 7)
   const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30)
 
+  const savedPreferences = dashboardPreferences?.layoutJson
+    ? JSON.parse(dashboardPreferences.layoutJson)
+    : null
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <DashboardClient
@@ -135,6 +158,8 @@ export default async function DashboardPage() {
         daysReadThisMonth={daysReadThisMonth}
         readingTrends={last30DaysLogs}
         readingGoals={readingGoals}
+        savedPreferences={savedPreferences}
+        currentlyReadingBooks={currentlyReadingBooks}
       />
     </Suspense>
   )
