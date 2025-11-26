@@ -12,6 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface Book {
   id: string
@@ -24,6 +32,7 @@ interface AddQuoteFormProps {
 }
 
 export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
+  const [open, setOpen] = useState(false)
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -73,6 +82,7 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
         bookId: "",
         pageNumber: "",
       })
+      setOpen(false)
       onQuoteAdded()
     } catch (error) {
       console.error("Error adding quote:", error)
@@ -84,54 +94,69 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/50">
-      <div className="space-y-2">
-        <Label htmlFor="quoteText">Quote</Label>
-        <Textarea
-          id="quoteText"
-          value={formData.quoteText}
-          onChange={(e) => setFormData({ ...formData, quoteText: e.target.value })}
-          placeholder="Enter your favorite quote..."
-          required
-          rows={3}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="book">Book (Optional)</Label>
-        <Select
-          value={formData.bookId}
-          onValueChange={(value) => setFormData({ ...formData, bookId: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a book (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">None</SelectItem>
-            {books.map((book) => (
-              <SelectItem key={book.id} value={book.id}>
-                {book.title} by {book.author}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {formData.bookId && (
-        <div className="space-y-2">
-          <Label htmlFor="pageNumber">Page Number (Optional)</Label>
-          <Input
-            id="pageNumber"
-            type="number"
-            value={formData.pageNumber}
-            onChange={(e) => setFormData({ ...formData, pageNumber: e.target.value })}
-            placeholder="Page number"
-            min="1"
-          />
-        </div>
-      )}
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Adding..." : "Add Quote"}
-      </Button>
-    </form>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm">
+          Add Quote
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Quote</DialogTitle>
+          <DialogDescription>
+            Save a favorite quote from your reading
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="quoteText">Quote</Label>
+            <Textarea
+              id="quoteText"
+              value={formData.quoteText}
+              onChange={(e) => setFormData({ ...formData, quoteText: e.target.value })}
+              placeholder="Enter your favorite quote..."
+              required
+              rows={3}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="book">Book (Optional)</Label>
+            <Select
+              value={formData.bookId}
+              onValueChange={(value) => setFormData({ ...formData, bookId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a book (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {books.map((book) => (
+                  <SelectItem key={book.id} value={book.id}>
+                    {book.title} by {book.author}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {formData.bookId && (
+            <div className="space-y-2">
+              <Label htmlFor="pageNumber">Page Number (Optional)</Label>
+              <Input
+                id="pageNumber"
+                type="number"
+                value={formData.pageNumber}
+                onChange={(e) => setFormData({ ...formData, pageNumber: e.target.value })}
+                placeholder="Page number"
+                min="1"
+              />
+            </div>
+          )}
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Adding..." : "Add Quote"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 
