@@ -128,14 +128,6 @@ export function DraggableWidgetGrid({
     onWidgetReorder(updated)
   }
 
-  if (visibleWidgets.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>No widgets visible. Use the customize button to add widgets to your dashboard.</p>
-      </div>
-    )
-  }
-
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {visibleWidgets.map((widget, index) => {

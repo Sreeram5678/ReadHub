@@ -1,23 +1,42 @@
 "use client"
 
-import { useMemo, useState, useEffect, useCallback } from "react"
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
-import { DraggableWidgetGrid } from "./DraggableWidgetGrid"
-import { WidgetCustomizationPanel } from "./WidgetCustomizationPanel"
-import { DashboardProvider, useDashboard } from "./DashboardContext"
-import { Button } from "@/components/ui/button"
-import { GripHorizontal, X } from "lucide-react"
-import {
-  DEFAULT_WIDGETS,
-  getDefaultWidgetInstances,
-  mergeWidgetPreferences,
-  WidgetInstance,
-  WidgetConfig,
-  WidgetId,
-} from "./widgetsConfig"
-import { renderWidget } from "./widgetRenderer"
-import type { Book } from "./DashboardContext"
+import { ReadingStreakWidget } from "./widgets/ReadingStreakWidget"
+import { StatsWidget } from "./widgets/StatsWidget"
+import { WeeklyMonthlyWidget } from "./widgets/WeeklyMonthlyWidget"
+import { ReadingGoals } from "./ReadingGoals"
+import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
+import { DailyQuote } from "@/components/reading/DailyQuote"
+import { QuickReadingLog } from "@/components/reading/QuickReadingLog"
+import { ReadingSpeedTest } from "@/components/reading/ReadingSpeedTest"
+import { ReadingStreakHeatmap } from "./ReadingStreakHeatmap"
+import { AchievementsList } from "@/components/achievements/AchievementsList"
+import { QuickStatsWidget } from "./QuickStatsWidget"
+import { RecentActivityWidget } from "./widgets/RecentActivityWidget"
+import dynamic from "next/dynamic"
+
+const ReadingTrendsChartLazy = dynamic(
+  () => import("./ReadingTrendsChart").then((mod) => ({ default: mod.ReadingTrendsChart })),
+  {
+    loading: () => (
+      <Card>
+        <div className="h-[300px] flex items-center justify-center">
+          <p className="text-muted-foreground">Loading chart...</p>
+        </div>
+      </Card>
+    ),
+    ssr: false,
+  }
+)
+
+interface Book {
+  id: string
+  title: string
+  author: string
+}
 
 interface ReadingLog {
   id: string
@@ -56,107 +75,6 @@ interface DashboardProps {
   daysReadThisMonth: number
   readingTrends: ReadingTrend[]
   readingGoals: ReadingGoal[]
-  currentlyReadingBooks: Book[]
-  savedPreferences: WidgetInstance[] | null
-}
-
-function DashboardContent() {
-  const dashboard = useDashboard()
-  const router = useRouter()
-  const [widgets, setWidgets] = useState<WidgetInstance[]>(() => {
-    return mergeWidgetPreferences(dashboard.savedPreferences, DEFAULT_WIDGETS)
-  })
-  const [isCustomizing, setIsCustomizing] = useState(false)
-
-  const refreshData = useCallback(() => {
-    router.refresh()
-  }, [router])
-
-  const handleWidgetsChange = useCallback(async (newWidgets: WidgetInstance[]) => {
-    setWidgets(newWidgets)
-    
-    try {
-      await fetch("/api/dashboard/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ widgets: newWidgets }),
-      })
-    } catch (error) {
-      console.error("Failed to save dashboard preferences:", error)
-    }
-  }, [])
-
-  const handleReset = useCallback(async () => {
-    const defaults = getDefaultWidgetInstances()
-    setWidgets(defaults)
-    
-    try {
-      await fetch("/api/dashboard/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ widgets: defaults }),
-      })
-    } catch (error) {
-      console.error("Failed to reset dashboard preferences:", error)
-    }
-  }, [])
-
-  const widgetRenderer = useCallback(
-    (widget: WidgetInstance, config: WidgetConfig) => {
-      return renderWidget(widget.id, dashboard)
-    },
-    [dashboard]
-  )
-
-  return (
-    <div className="space-y-6 md:space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Welcome back, {dashboard.userName}!
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {isCustomizing ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsCustomizing(false)}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Done Customizing
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsCustomizing(true)}
-            >
-              <GripHorizontal className="mr-2 h-4 w-4" />
-              Arrange Widgets
-            </Button>
-          )}
-          <WidgetCustomizationPanel
-            widgets={widgets}
-            widgetConfigs={DEFAULT_WIDGETS}
-            onWidgetsChange={handleWidgetsChange}
-            onReset={handleReset}
-          />
-          <LogReadingForm books={dashboard.books} onLogAdded={refreshData} />
-        </div>
-      </div>
-
-      <DraggableWidgetGrid
-        widgets={widgets}
-        widgetConfigs={DEFAULT_WIDGETS}
-        isCustomizing={isCustomizing}
-        onWidgetReorder={handleWidgetsChange}
-        renderWidget={widgetRenderer}
-      />
-
-    </div>
-  )
 }
 
 export function DashboardClient({
@@ -173,11 +91,12 @@ export function DashboardClient({
   daysReadThisMonth,
   readingTrends,
   readingGoals,
-  currentlyReadingBooks,
-  savedPreferences,
 }: DashboardProps) {
   const router = useRouter()
-  
+  const refreshData = () => {
+    router.refresh()
+  }
+
   const { weeklyPages, monthlyPages } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -197,34 +116,74 @@ export function DashboardClient({
     return { weeklyPages: weekly, monthlyPages: monthly }
   }, [readingTrends])
 
-  const refreshData = () => {
-    router.refresh()
-  }
-
-  const contextValue = {
-    totalBooks,
-    completedBooks,
-    completionPercentage,
-    totalPagesRead,
-    todayPages,
-    recentLogs,
-    books,
-    userName,
-    readingStreak,
-    daysReadThisWeek,
-    daysReadThisMonth,
-    readingTrends,
-    readingGoals,
-    weeklyPages,
-    monthlyPages,
-    currentlyReadingBooks,
-    savedPreferences: savedPreferences || null,
-    onRefresh: refreshData,
-  }
-
   return (
-    <DashboardProvider value={contextValue}>
-      <DashboardContent />
-    </DashboardProvider>
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Welcome back, {userName}!
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <LogReadingForm books={books} onLogAdded={refreshData} />
+        </div>
+      </div>
+
+      {/* Row 1: key stats */}
+      <StatsWidget
+        totalBooks={totalBooks}
+        completedBooks={completedBooks}
+        completionPercentage={completionPercentage}
+        totalPagesRead={totalPagesRead}
+        todayPages={todayPages}
+      />
+
+      {/* Row 2: streak + weekly/monthly + goals */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        <ReadingStreakWidget readingStreak={readingStreak} />
+        <div className="md:col-span-1">
+          <WeeklyMonthlyWidget
+            weeklyPages={weeklyPages}
+            monthlyPages={monthlyPages}
+            daysReadThisWeek={daysReadThisWeek}
+            daysReadThisMonth={daysReadThisMonth}
+          />
+        </div>
+        <ReadingGoals
+          goals={readingGoals}
+          currentProgress={{
+            daily: todayPages,
+            weekly: weeklyPages,
+            monthly: monthlyPages,
+          }}
+          onGoalAdded={refreshData}
+        />
+      </div>
+
+      {/* Row 3: trends + timer */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <ReadingTrendsChartLazy trends={readingTrends} />
+        <ReadingSessionTimer books={books} />
+      </div>
+
+      {/* Row 4: daily quote + quick log */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <DailyQuote />
+        <QuickReadingLog books={books} onLogAdded={refreshData} />
+      </div>
+
+      {/* Row 5: heatmap */}
+      <ReadingStreakHeatmap />
+
+      {/* Row 6: achievements + quick stats */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <AchievementsList />
+        <QuickStatsWidget />
+      </div>
+
+      {/* Row 7: recent activity */}
+      <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
+    </div>
   )
 }

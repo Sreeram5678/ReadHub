@@ -114,13 +114,7 @@ export default async function DashboardPage() {
         userId,
         status: "reading",
       },
-      select: {
-        id: true,
-        title: true,
-        author: true,
-        totalPages: true,
-        currentPage: true,
-        initialPages: true,
+      include: {
         readingLogs: {
           select: { pagesRead: true },
         },
@@ -177,8 +171,6 @@ export default async function DashboardPage() {
         daysReadThisMonth={daysReadThisMonth}
         readingTrends={last30DaysLogs}
         readingGoals={readingGoals}
-        currentlyReadingBooks={currentlyReadingBooks}
-        savedPreferences={savedPreferences}
       />
     </Suspense>
   )
