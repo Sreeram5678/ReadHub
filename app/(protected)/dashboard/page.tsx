@@ -101,8 +101,7 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
     }),
     getBooks(userId),
-    // @ts-expect-error DashboardPreference model is defined in the Prisma schema
-    db.dashboardPreference.findUnique({
+    (db as any).dashboardPreference.findUnique({
       where: { userId },
       select: { layoutJson: true },
     }),
