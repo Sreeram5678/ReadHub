@@ -5,7 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { BookOpen, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
-import type { Book } from "../DashboardContext"
+
+interface Book {
+  id: string
+  title: string
+  author: string
+  totalPages: number
+  currentPage?: number
+  initialPages?: number
+  readingLogs: Array<{ pagesRead: number }>
+}
 
 interface CurrentlyReadingFocusWidgetProps {
   books: Book[]
@@ -18,11 +27,7 @@ export function CurrentlyReadingFocusWidget({ books }: CurrentlyReadingFocusWidg
   useEffect(() => {
     if (books.length > 0) {
       const book = books[0]
-      if (!book.totalPages) {
-        setCurrentlyReading(null)
-        return
-      }
-      const totalPagesRead = (book.initialPages || 0) + (book.readingLogs || []).reduce(
+      const totalPagesRead = (book.initialPages || 0) + book.readingLogs.reduce(
         (sum, log) => sum + log.pagesRead,
         0
       )
@@ -55,26 +60,7 @@ export function CurrentlyReadingFocusWidget({ books }: CurrentlyReadingFocusWidg
     )
   }
 
-  if (!currentlyReading.totalPages) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg flex items-center gap-2">
-            <BookOpen className="h-4 w-4 md:h-5 md:w-5" />
-            Currently Reading
-          </CardTitle>
-          <CardDescription className="text-xs md:text-sm">Your active book</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            No book currently being read. Start reading a book to see it here!
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const totalPagesRead = (currentlyReading.initialPages || 0) + (currentlyReading.readingLogs || []).reduce(
+  const totalPagesRead = (currentlyReading.initialPages || 0) + currentlyReading.readingLogs.reduce(
     (sum, log) => sum + log.pagesRead,
     0
   )
