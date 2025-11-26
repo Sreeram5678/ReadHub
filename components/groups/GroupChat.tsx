@@ -277,29 +277,30 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)] bg-background">
+    <div className="flex flex-col h-[calc(100vh-200px)] bg-gradient-to-b from-background via-background to-muted/20">
       {/* Chat Header */}
-      <div className="border-b border-border px-6 py-4 flex items-center justify-between bg-card/50 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-sm text-muted-foreground">Active</span>
+      <div className="border-b border-border/60 px-4 md:px-6 py-3 flex items-center justify-between bg-background/80 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs md:text-sm text-muted-foreground">Active</span>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs md:text-sm text-muted-foreground">
           {messages.length} {messages.length === 1 ? "message" : "messages"}
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Users className="h-8 w-8 text-muted-foreground" />
+      <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-muted/60 flex items-center justify-center mb-4">
+                <Users className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-lg font-medium mb-1">No messages yet</p>
+              <p className="text-sm text-muted-foreground">Be the first to say something and start the discussion.</p>
             </div>
-            <p className="text-lg font-medium mb-2">No messages yet</p>
-            <p className="text-sm text-muted-foreground">Start the conversation!</p>
-          </div>
-        ) : (
+          ) : (
           messages.map((message, index) => {
             if (!message || !message.user) return null
             
@@ -309,7 +310,13 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
               new Date(message.createdAt).getTime() - new Date(messages[index - 1].createdAt).getTime() > 300000
 
             return (
-              <div key={message.id} className={cn("flex gap-3 group", isOwnMessage && "flex-row-reverse")}>
+              <div
+                key={message.id}
+                className={cn(
+                  "flex gap-3 group",
+                  isOwnMessage && "flex-row-reverse"
+                )}
+              >
                 {/* Avatar */}
                 <div className={cn("flex-shrink-0", isOwnMessage && "order-2")}>
                   {showAvatar ? (
@@ -330,7 +337,12 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
                 </div>
 
                 {/* Message Content */}
-                <div className={cn("flex-1 min-w-0 max-w-[75%]", isOwnMessage && "flex flex-col items-end")}>
+                <div
+                  className={cn(
+                    "flex-1 min-w-0 max-w-[78%]",
+                    isOwnMessage && "flex flex-col items-end"
+                  )}
+                >
                   {/* Timestamp */}
                   {showTimestamp && (
                     <div className={cn("text-xs text-muted-foreground mb-2 text-center", isOwnMessage && "text-right")}>
@@ -541,12 +553,13 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
               </div>
             )
           })
-        )}
-        <div ref={messagesEndRef} />
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Composer Section */}
-      <div className="border-t border-border bg-card/50 backdrop-blur-sm">
+      <div className="border-t border-border/60 bg-background/90 backdrop-blur-sm">
         {/* Reply Banner */}
         {replyingTo && (
           <div className="px-6 pt-3 pb-2">
@@ -574,8 +587,8 @@ export function GroupChat({ groupId, currentUserId, userRole }: GroupChatProps) 
         )}
 
         {/* Input Area */}
-        <div className="px-6 pb-4 pt-3">
-          <div className="flex gap-3 items-end">
+        <div className="px-3 md:px-6 pb-4 pt-3">
+          <div className="max-w-3xl mx-auto flex gap-3 items-end">
             <div className="flex-1 relative">
               <Textarea
                 id="message-input"
