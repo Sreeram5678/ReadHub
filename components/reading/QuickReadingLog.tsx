@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Zap } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Book {
   id: string
@@ -83,9 +85,27 @@ export function QuickReadingLog({ books, onLogAdded }: QuickReadingLogProps) {
         <CardDescription>One-tap reading log</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
+        <div className="space-y-2">
+          <Label htmlFor="quick-log-book">Book</Label>
+          <Select
+            value={selectedBookId}
+            onValueChange={setSelectedBookId}
+          >
+            <SelectTrigger id="quick-log-book">
+              <SelectValue placeholder="Select a book" />
+            </SelectTrigger>
+            <SelectContent>
+              {books.map((book) => (
+                <SelectItem key={book.id} value={book.id}>
+                  {book.title} by {book.author}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {selectedBook && (
           <div className="text-sm">
-            <p className="text-muted-foreground">Current book:</p>
+            <p className="text-muted-foreground">Selected book:</p>
             <p className="font-medium">{selectedBook.title}</p>
           </div>
         )}

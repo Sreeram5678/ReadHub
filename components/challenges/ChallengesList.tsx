@@ -31,11 +31,27 @@ interface Challenge {
   isJoined: boolean
 }
 
+interface ChallengeParticipant {
+  id: string
+  progress: number
+  joinedAt: string
+  user: {
+    id: string
+    name: string | null
+    email: string
+    image: string | null
+  }
+}
+
 export function ChallengesList() {
   const [challenges, setChallenges] = useState<Challenge[]>([])
   const [filter, setFilter] = useState("all")
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [participantsLoading, setParticipantsLoading] = useState(false)
+  const [participantsOpen, setParticipantsOpen] = useState(false)
+  const [activeChallengeTitle, setActiveChallengeTitle] = useState("")
+  const [participants, setParticipants] = useState<ChallengeParticipant[]>([])
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -59,6 +75,25 @@ export function ChallengesList() {
       }
     } catch (error) {
       console.error("Failed to fetch challenges:", error)
+    }
+  }
+
+  const handleViewParticipants = async (challenge: Challenge) => {
+    setParticipantsLoading(true)
+    setActiveChallengeTitle(challenge.title)
+    try {
+      const response = await fetch(`/api/challenges/${challenge.id}/participants`)
+      if (response.ok) {
+        const data = await response.json()
+        setParticipants(Array.isArray(data) ? data : [])
+        setParticipantsOpen(true)
+      }
+    } catch (error) {
+      console.error("Failed to fetch challenge participants:", error)
+      setParticipants([])
+      setParticipantsOpen(true)
+    } finally {
+      setParticipantsLoading(false)
     }
   }
 
@@ -240,6 +275,48 @@ export function ChallengesList() {
         </Button>
       </div>
 
+      {/* Participants dialog */}
+      <Dialog open={participantsOpen} onOpenChange={setParticipantsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Participants</DialogTitle>
+            <DialogDescription>
+              {activeChallengeTitle || "Challenge"} – people who have joined this challenge.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[360px] overflow-y-auto">
+            {participantsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading participants...</p>
+            ) : participants.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No participants yet.</p>
+            ) : (
+              participants.map((p) => {
+                const displayName = p.user.name || p.user.email
+                const initial = (displayName?.[0] || "U").toUpperCase()
+                return (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-card/60 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
+                        {initial}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium truncate">{displayName}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Progress: {p.progress}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {challenges.length === 0 ? (
           <Card className="col-span-full">
@@ -274,10 +351,14 @@ export function ChallengesList() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Participants</span>
-                    <span className="font-medium flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleViewParticipants(challenge)}
+                      className="font-medium flex items-center gap-1 hover:underline"
+                    >
                       <Users className="h-3 w-3" />
                       {challenge.participantCount}
-                    </span>
+                    </button>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Period</span>
