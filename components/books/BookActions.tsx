@@ -196,7 +196,7 @@ export function BookActions({
 
   return (
     <div className="flex gap-1">
-      {(isReading || isCompleted) && (
+      {!isTBR && (
         <Button
           variant="ghost"
           size="icon"

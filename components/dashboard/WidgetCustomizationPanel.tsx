@@ -31,6 +31,13 @@ export function WidgetCustomizationPanel({
   const [open, setOpen] = useState(false)
   const [localWidgets, setLocalWidgets] = useState(widgets)
 
+  // Keep local state in sync when dialog is opened with updated props
+  useEffect(() => {
+    if (open) {
+      setLocalWidgets(widgets)
+    }
+  }, [open, widgets])
+
   const widgetMap = new Map(widgets.map((w) => [w.id, w]))
   const configMap = new Map(widgetConfigs.map((c) => [c.id, c]))
 
