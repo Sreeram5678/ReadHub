@@ -101,6 +101,7 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
     }),
     getBooks(userId),
+    // @ts-expect-error DashboardPreference model is defined in the Prisma schema
     db.dashboardPreference.findUnique({
       where: { userId },
       select: { layoutJson: true },
@@ -122,12 +123,15 @@ export default async function DashboardPage() {
 
   // Calculate counts from fetched data (faster than separate queries)
   const totalBooks = booksData.length
-  const completedBooks = booksData.filter(b => b.status === "completed").length
+  const completedBooks = booksData.filter(
+    (b: { status?: string }) => b.status === "completed"
+  ).length
   const completionPercentage = totalBooks > 0 
     ? Math.round((completedBooks / totalBooks) * 100) 
     : 0
   const initialPagesSum = booksData.reduce(
-    (sum, book) => sum + (book.initialPages || 0),
+    (sum: number, book: { initialPages?: number | null }) =>
+      sum + (book.initialPages || 0),
     0
   )
 
@@ -138,9 +142,15 @@ export default async function DashboardPage() {
   const daysReadThisWeek = getReadingDaysInPeriod(allLogs, 7)
   const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30)
 
-  const savedPreferences = dashboardPreferences?.layoutJson
-    ? JSON.parse(dashboardPreferences.layoutJson)
-    : null
+  let savedPreferences: any = null
+  if (dashboardPreferences?.layoutJson) {
+    try {
+      savedPreferences = JSON.parse(dashboardPreferences.layoutJson)
+    } catch (error) {
+      console.error("Failed to parse dashboard preferences JSON, falling back to defaults:", error)
+      savedPreferences = null
+    }
+  }
 
   return (
     <Suspense fallback={<DashboardSkeleton />}>

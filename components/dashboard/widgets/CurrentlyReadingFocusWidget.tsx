@@ -33,7 +33,11 @@ export function CurrentlyReadingFocusWidget({ books }: CurrentlyReadingFocusWidg
       )
       if (totalPagesRead < book.totalPages) {
         setCurrentlyReading(book)
+      } else {
+        setCurrentlyReading(null)
       }
+    } else {
+      setCurrentlyReading(null)
     }
   }, [books])
 
