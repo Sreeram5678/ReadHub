@@ -1,4 +1,4 @@
-# Book Reading Tracker
+# ReadHub
 
 A Next.js application for tracking daily book reading progress and competing with friends on a leaderboard.
 
@@ -47,7 +47,7 @@ A Next.js application for tracking daily book reading progress and competing wit
 
 1. Clone the repository and navigate to the project directory:
 ```bash
-cd book-reading-tracker
+cd readhub
 ```
 
 2. Install dependencies:
@@ -108,7 +108,7 @@ npm run dev
 ## Project Structure
 
 ```
-book-reading-tracker/
+readhub/
 ├── app/
 │   ├── api/              # API routes
 │   ├── (auth)/          # Public auth pages

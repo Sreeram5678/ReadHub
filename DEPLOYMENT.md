@@ -1,6 +1,6 @@
 # Deployment Guide: Vercel + Supabase
 
-This guide will walk you through deploying your Book Reading Tracker to Vercel with a Supabase PostgreSQL database.
+This guide will walk you through deploying your ReadHub to Vercel with a Supabase PostgreSQL database.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ This guide will walk you through deploying your Book Reading Tracker to Vercel w
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin https://github.com/yourusername/book-reading-tracker.git
+   git remote add origin https://github.com/yourusername/readhub.git
    git push -u origin main
    ```
 
@@ -28,7 +28,7 @@ This guide will walk you through deploying your Book Reading Tracker to Vercel w
    - Click "New Project"
 
 2. **Create New Project**
-   - Enter project name: `book-reading-tracker`
+   - Enter project name: `readhub`
    - Enter a database password (save this securely!)
    - Choose a region closest to you
    - Click "Create new project"
@@ -63,12 +63,12 @@ This guide will walk you through deploying your Book Reading Tracker to Vercel w
    - Go to [vercel.com](https://vercel.com)
    - Sign up/login with GitHub
    - Click "Add New Project"
-   - Import your `book-reading-tracker` repository
+   - Import your `readhub` repository
    - Click "Import"
 
 2. **Configure Build Settings**
    - Framework Preset: **Next.js** (should auto-detect)
-   - Root Directory: `book-reading-tracker` (if your repo has this folder)
+   - Root Directory: `readhub` (if your repo has this folder)
    - Build Command: `npm run build` (default)
    - Output Directory: `.next` (default)
    - Install Command: `npm install` (default)
@@ -91,7 +91,7 @@ This guide will walk you through deploying your Book Reading Tracker to Vercel w
 4. **Deploy**
    - Click "Deploy"
    - Wait for build to complete (2-3 minutes)
-   - Note your deployment URL (e.g., `https://book-reading-tracker.vercel.app`)
+   - Note your deployment URL (e.g., `https://readhub.vercel.app`)
 
 ## Step 4: Update OAuth Callback URLs
 
