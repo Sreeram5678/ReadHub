@@ -167,8 +167,6 @@ export default async function DashboardPage() {
         daysReadThisMonth={daysReadThisMonth}
         readingTrends={last30DaysLogs}
         readingGoals={readingGoals}
-        savedPreferences={savedPreferences}
-        currentlyReadingBooks={currentlyReadingBooks}
       />
     </Suspense>
   )

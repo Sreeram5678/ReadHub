@@ -56,7 +56,7 @@ export function QuickStatsWidget() {
             Quick Stats
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="min-h-[220px] flex items-center">
           <p className="text-muted-foreground">Loading stats...</p>
         </CardContent>
       </Card>
@@ -76,7 +76,7 @@ export function QuickStatsWidget() {
         </CardTitle>
         <CardDescription>Share your reading progress</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
         <div className="p-4 bg-muted rounded-lg">
           <p className="text-lg font-medium text-center">{stats.text}</p>
         </div>
