@@ -254,14 +254,29 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
 ]
 
 export function getDefaultWidgetInstances(): WidgetInstance[] {
-  return DEFAULT_WIDGETS.map((widget, index) => ({
-    id: widget.id,
-    visible: widget.defaultVisible,
-    order: index,
-    size: widget.defaultSize,
-    cols: widget.gridCols ?? 1,
-    presetId: null,
-  }))
+  // Return minimal preset widgets as default for cleaner, organized dashboard
+  // This is defined inline to avoid circular dependency
+  const minimalWidgets: Array<{ id: WidgetId; visible: boolean; cols: number }> = [
+    { id: "streak", cols: 1, visible: true },
+    { id: "stats", cols: 3, visible: true },
+    { id: "weeklyMonthly", cols: 2, visible: true },
+    { id: "quickLog", cols: 2, visible: true },
+    { id: "recentActivity", cols: 2, visible: true },
+  ]
+  
+  const configMap = new Map(DEFAULT_WIDGETS.map((w) => [w.id, w]))
+  
+  return minimalWidgets.map((item, index) => {
+    const config = configMap.get(item.id)
+    return {
+      id: item.id,
+      visible: item.visible,
+      order: index,
+      size: config?.defaultSize ?? "medium",
+      cols: item.cols,
+      presetId: "minimal" as DashboardPresetId,
+    }
+  })
 }
 
 export function mergeWidgetPreferences(
@@ -269,6 +284,7 @@ export function mergeWidgetPreferences(
   defaultWidgets: WidgetConfig[]
 ): WidgetInstance[] {
   if (!savedPreferences || savedPreferences.length === 0) {
+    // Return minimal preset as default for new users
     return getDefaultWidgetInstances()
   }
 
@@ -312,24 +328,16 @@ function createPresetInstances(
   presetId: DashboardPresetId,
   items: Array<{ id: WidgetId; visible?: boolean; cols?: number }>
 ): WidgetInstance[] {
-  const defaults = getDefaultWidgetInstances()
-  const defaultMap = new Map(defaults.map((w) => [w.id, w]))
+  const configMap = new Map(DEFAULT_WIDGETS.map((w) => [w.id, w]))
 
   return items.map((item, index) => {
-    const base = defaultMap.get(item.id) ?? {
-      id: item.id,
-      visible: true,
-      order: index,
-      size: "medium" as WidgetSize,
-      cols: 1,
-      presetId: presetId,
-    }
-
+    const config = configMap.get(item.id)
     return {
-      ...base,
-      visible: item.visible ?? base.visible,
-      cols: item.cols ?? base.cols,
+      id: item.id,
+      visible: item.visible ?? config?.defaultVisible ?? true,
       order: index,
+      size: config?.defaultSize ?? "medium",
+      cols: item.cols ?? config?.gridCols ?? 1,
       presetId,
     }
   })
@@ -376,7 +384,6 @@ export const DASHBOARD_PRESETS: Record<DashboardPresetId, WidgetInstance[]> = {
     { id: "streak", cols: 1, visible: true },
     { id: "stats", cols: 3, visible: true },
     { id: "sessionTimer", cols: 2, visible: true },
-    { id: "readingPace", cols: 2, visible: true },
     { id: "readingPace", cols: 2, visible: true },
     { id: "speedTest", cols: 2, visible: true },
     { id: "dailyQuote", cols: 2, visible: true },
