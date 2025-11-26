@@ -1,6 +1,6 @@
-"use client"
+\"use client\"
 
-import { useState } from "react"
+import { useState, useEffect } from \"react\"
 import {
   Dialog,
   DialogContent,
