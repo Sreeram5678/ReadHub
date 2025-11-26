@@ -99,12 +99,33 @@ export function DraggableWidgetGrid({
 
   const getGridCols = (widget: WidgetInstance): string => {
     const config = configMap.get(widget.id)
-    const cols = config?.gridCols ?? 1
-    // For widgets that contain their own grid (like stats), don't add col-span
-    if (widget.id === "stats" || widget.id === "weeklyMonthly") {
+    const cols = widget.cols ?? config?.gridCols ?? 1
+
+    // Map logical column count to Tailwind span classes.
+    // All widgets are single-column on mobile; they expand on larger screens.
+    if (cols >= 4) {
       return "col-span-1 sm:col-span-2 lg:col-span-4"
     }
-    return "col-span-1"
+    if (cols === 2) {
+      return "col-span-1 sm:col-span-2 lg:col-span-2"
+    }
+    return "col-span-1 sm:col-span-2 lg:col-span-1"
+  }
+
+  const handleResize = (widgetId: WidgetInstance["id"]) => {
+    if (!isCustomizing) return
+    const config = configMap.get(widgetId)
+    const minCols = config?.minCols ?? 1
+    const maxCols = config?.maxCols ?? 2
+
+    const updated = widgets.map((w) => {
+      if (w.id !== widgetId) return w
+      const currentCols = w.cols ?? config?.gridCols ?? 1
+      const nextCols = currentCols >= maxCols ? minCols : currentCols + 1
+      return { ...w, cols: nextCols }
+    })
+
+    onWidgetReorder(updated)
   }
 
   return (
@@ -133,11 +154,20 @@ export function DraggableWidgetGrid({
             onDragEnd={handleDragEnd}
           >
             {isCustomizing && (
-              <div className="absolute -top-2 -left-2 z-10 flex items-center gap-1">
-                <div className="bg-primary text-primary-foreground rounded p-1 cursor-move">
-                  <GripVertical className="h-4 w-4" />
+              <>
+                <div className="absolute -top-2 -left-2 z-10 flex items-center gap-1">
+                  <div className="bg-primary text-primary-foreground rounded p-1 cursor-move">
+                    <GripVertical className="h-4 w-4" />
+                  </div>
                 </div>
-              </div>
+                <button
+                  type="button"
+                  onClick={() => handleResize(widget.id)}
+                  className="absolute -bottom-2 -right-2 z-10 rounded-full border bg-background px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm"
+                >
+                  Resize
+                </button>
+              </>
             )}
             {renderWidget(widget, config)}
           </div>
