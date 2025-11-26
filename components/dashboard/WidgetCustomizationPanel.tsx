@@ -1,6 +1,6 @@
-\"use client\"
+"use client"
 
-import { useState, useEffect } from \"react\"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -39,7 +39,6 @@ export function WidgetCustomizationPanel({
   }, [open, widgets])
 
   const widgetMap = new Map(widgets.map((w) => [w.id, w]))
-  const configMap = new Map(widgetConfigs.map((c) => [c.id, c]))
 
   const groupedWidgets = {
     stats: widgetConfigs.filter((c) => c.category === "stats"),
@@ -141,4 +140,3 @@ export function WidgetCustomizationPanel({
     </Dialog>
   )
 }
-
