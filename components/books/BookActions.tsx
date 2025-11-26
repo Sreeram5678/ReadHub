@@ -196,13 +196,13 @@ export function BookActions({
 
   return (
     <div className="flex gap-1">
-      {!isCompleted && !isTBR && (
+      {(isReading || isCompleted) && (
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8"
           onClick={handleMarkCompleted}
-          title="Mark as completed"
+          title={isCompleted ? "Mark as reading" : "Mark as completed"}
         >
           <CheckCircle2 className="h-4 w-4" />
         </Button>
