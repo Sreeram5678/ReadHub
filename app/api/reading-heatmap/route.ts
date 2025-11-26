@@ -34,10 +34,20 @@ export async function GET(request: Request) {
       },
     })
 
-    // Group by date and sum pages
+    // Helper to format a Date as YYYY-MM-DD in the user's local timezone
+    const formatLocalDate = (date: Date) => {
+      const local = new Date(date)
+      local.setHours(0, 0, 0, 0)
+      const year = local.getFullYear()
+      const month = String(local.getMonth() + 1).padStart(2, "0")
+      const day = String(local.getDate()).padStart(2, "0")
+      return `${year}-${month}-${day}`
+    }
+
+    // Group by local date and sum pages
     const dateMap = new Map<string, number>()
     logs.forEach((log) => {
-      const dateKey = log.date.toISOString().split("T")[0]
+      const dateKey = formatLocalDate(log.date)
       const current = dateMap.get(dateKey) || 0
       dateMap.set(dateKey, current + log.pagesRead)
     })
