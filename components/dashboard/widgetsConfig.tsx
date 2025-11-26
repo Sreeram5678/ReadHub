@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import { ComponentType } from "react"
 import { ReadingStreakWidget } from "./widgets/ReadingStreakWidget"
 import { StatsWidget } from "./widgets/StatsWidget"
 import { WeeklyMonthlyWidget } from "./widgets/WeeklyMonthlyWidget"
@@ -53,7 +53,7 @@ export interface WidgetConfig {
   defaultSize: WidgetSize
   defaultVisible: boolean
   category: "stats" | "activity" | "tools" | "goals"
-  component: (props: any) => ReactNode
+  component: ComponentType<any>
   gridCols?: number // Number of columns this widget spans (1-4)
 }
 
