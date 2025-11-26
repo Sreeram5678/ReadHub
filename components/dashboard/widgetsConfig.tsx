@@ -4,21 +4,21 @@ import { ReactNode } from "react"
 import { ReadingStreakWidget } from "./widgets/ReadingStreakWidget"
 import { StatsWidget } from "./widgets/StatsWidget"
 import { WeeklyMonthlyWidget } from "./widgets/WeeklyMonthlyWidget"
-import { ReadingGoals } from "../ReadingGoals"
-import { ReadingTrendsChart } from "../ReadingTrendsChart"
+import { ReadingGoals } from "./ReadingGoals"
+import { ReadingTrendsChart } from "./ReadingTrendsChart"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { DailyQuote } from "@/components/reading/DailyQuote"
 import { QuickReadingLog } from "@/components/reading/QuickReadingLog"
 import { ReadingSpeedTest } from "@/components/reading/ReadingSpeedTest"
-import { ReadingStreakHeatmap } from "../ReadingStreakHeatmap"
+import { ReadingStreakHeatmap } from "./ReadingStreakHeatmap"
 import { AchievementsList } from "@/components/achievements/AchievementsList"
-import { QuickStatsWidget } from "../QuickStatsWidget"
+import { QuickStatsWidget } from "./QuickStatsWidget"
 import { RecentActivityWidget } from "./widgets/RecentActivityWidget"
 import { ReadingPaceWidget } from "./widgets/ReadingPaceWidget"
 import { CurrentlyReadingFocusWidget } from "./widgets/CurrentlyReadingFocusWidget"
 import dynamic from "next/dynamic"
 
-const ReadingTrendsChartLazy = dynamic(() => import("../ReadingTrendsChart").then(mod => ({ default: mod.ReadingTrendsChart })), {
+const ReadingTrendsChartLazy = dynamic(() => import("./ReadingTrendsChart").then(mod => ({ default: mod.ReadingTrendsChart })), {
   loading: () => (
     <div className="h-[300px] flex items-center justify-center">
       <p className="text-muted-foreground">Loading chart...</p>
