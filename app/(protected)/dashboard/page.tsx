@@ -114,7 +114,13 @@ export default async function DashboardPage() {
         userId,
         status: "reading",
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        author: true,
+        totalPages: true,
+        currentPage: true,
+        initialPages: true,
         readingLogs: {
           select: { pagesRead: true },
         },
