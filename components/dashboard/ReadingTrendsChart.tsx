@@ -10,6 +10,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Area,
+  AreaChart,
 } from "recharts"
 
 interface ReadingTrend {
@@ -47,9 +49,17 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
           <CardDescription>Your reading activity over the last 30 days</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            No reading data yet. Start logging your reading to see trends!
-          </p>
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No reading data yet</h3>
+            <p className="text-muted-foreground text-center max-w-md">
+              Start logging your reading to see trends and track your progress over time!
+            </p>
+          </div>
         </CardContent>
       </Card>
     )
@@ -63,31 +73,53 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="colorPages" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
               angle={-45}
               textAnchor="end"
               height={80}
+              stroke="hsl(var(--border))"
             />
-            <YAxis tick={{ fontSize: 12 }} />
+            <YAxis 
+              tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+              stroke="hsl(var(--border))"
+            />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(var(--background))",
+                backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
-                borderRadius: "6px",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+                padding: "8px 12px",
+              }}
+              labelStyle={{
+                color: "hsl(var(--foreground))",
+                fontWeight: 600,
+                marginBottom: "4px",
+              }}
+              itemStyle={{
+                color: "hsl(var(--foreground))",
               }}
             />
-            <Line
+            <Area
               type="monotone"
               dataKey="pages"
               stroke="hsl(var(--primary))"
-              strokeWidth={2}
-              dot={{ r: 4 }}
+              strokeWidth={3}
+              fill="url(#colorPages)"
+              dot={{ r: 5, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+              activeDot={{ r: 7, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

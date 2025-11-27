@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
+import { getUserTimezone } from "@/lib/user-timezone"
+import { getTodayInTimezone, getStartOfDayInTimezone } from "@/lib/timezone"
 
 export async function GET(request: Request) {
   try {
@@ -13,22 +15,23 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const period = searchParams.get("period") || "all-time"
     const userId = session.user.id
+    const userTimezone = await getUserTimezone(userId)
 
     let startDate: Date | undefined
     const now = new Date()
 
     switch (period) {
       case "today":
-        startDate = new Date(now)
-        startDate.setHours(0, 0, 0, 0)
+        startDate = getTodayInTimezone(userTimezone)
         break
       case "week":
-        startDate = new Date(now)
-        startDate.setDate(now.getDate() - 7)
+        const today = getTodayInTimezone(userTimezone)
+        startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
         break
       case "month":
-        startDate = new Date(now)
-        startDate.setMonth(now.getMonth() - 1)
+        const todayMonth = getTodayInTimezone(userTimezone)
+        startDate = new Date(todayMonth)
+        startDate.setMonth(startDate.getMonth() - 1)
         break
       default:
         startDate = undefined

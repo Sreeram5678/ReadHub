@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
+import { getUserTimezone } from "@/lib/user-timezone"
+import { parseDateInTimezone, getTodayInTimezone } from "@/lib/timezone"
 
 export async function GET(request: Request) {
   try {
@@ -65,8 +67,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
-    const logDate = date ? new Date(date) : new Date()
-    logDate.setHours(0, 0, 0, 0)
+    const userTimezone = await getUserTimezone(session.user.id)
+    const logDate = date
+      ? parseDateInTimezone(date, userTimezone)
+      : getTodayInTimezone(userTimezone)
 
     const existingLog = await db.readingLog.findUnique({
       where: {

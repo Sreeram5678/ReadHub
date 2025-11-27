@@ -22,6 +22,21 @@ export function QuickReadingLog({ books, onLogAdded }: QuickReadingLogProps) {
   const [selectedBookId, setSelectedBookId] = useState<string>("")
   const [loading, setLoading] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [userTimezone, setUserTimezone] = useState<string>("Asia/Kolkata")
+
+  useEffect(() => {
+    // Fetch user timezone
+    fetch("/api/profile/timezone")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.timezone) {
+          setUserTimezone(data.timezone)
+        }
+      })
+      .catch(() => {
+        // Use default timezone already set
+      })
+  }, [])
 
   useEffect(() => {
     // Auto-select most recently read book (first book in list)
@@ -46,7 +61,7 @@ export function QuickReadingLog({ books, onLogAdded }: QuickReadingLogProps) {
         body: JSON.stringify({
           bookId: selectedBookId,
           pagesRead: pages,
-          date: new Date().toISOString().split("T")[0],
+          date: new Date().toLocaleDateString("en-CA", { timeZone: userTimezone }),
         }),
       })
 

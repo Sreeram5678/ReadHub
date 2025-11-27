@@ -17,6 +17,8 @@ model User {
   image         String?
   password      String?
   emailVerified DateTime?
+  timezone      String        @default("Asia/Kolkata")
+  bio           String?
   accounts      Account[]
   sessions      Session[]
   books         Book[]

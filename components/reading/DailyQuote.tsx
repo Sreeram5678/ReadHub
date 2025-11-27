@@ -2,20 +2,25 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Quote as QuoteIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Quote as QuoteIcon, Pencil } from "lucide-react"
 import { AddQuoteForm } from "./AddQuoteForm"
+import { EditQuoteForm } from "./EditQuoteForm"
 
 interface DailyQuoteData {
+  id?: string
   quoteText: string
   bookTitle: string | null
   bookAuthor: string | null
   pageNumber: number | null
+  bookId?: string | null
   isUserQuote: boolean
 }
 
 export function DailyQuote() {
   const [quote, setQuote] = useState<DailyQuoteData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [editOpen, setEditOpen] = useState(false)
 
   useEffect(() => {
     fetchDailyQuote()
@@ -73,9 +78,21 @@ export function DailyQuote() {
       </CardHeader>
       <CardContent className="space-y-4 min-h-[220px]">
         <div className="space-y-3">
-          <blockquote className="text-lg italic border-l-4 border-primary pl-4 py-2">
-            "{quote.quoteText}"
-          </blockquote>
+          <div className="flex items-start justify-between gap-2">
+            <blockquote className="text-lg italic border-l-4 border-primary pl-4 py-2 flex-1">
+              "{quote.quoteText}"
+            </blockquote>
+            {quote.isUserQuote && quote.id && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditOpen(true)}
+                className="shrink-0"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           {quote.isUserQuote && quote.bookTitle && (
             <div className="text-sm text-muted-foreground">
               <p className="font-medium">
@@ -94,6 +111,21 @@ export function DailyQuote() {
           )}
         </div>
       </CardContent>
+      {quote.isUserQuote && quote.id && (
+        <EditQuoteForm
+          quote={{
+            id: quote.id,
+            quoteText: quote.quoteText,
+            bookId: quote.bookId || null,
+            pageNumber: quote.pageNumber,
+          }}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          onQuoteUpdated={() => {
+            fetchDailyQuote()
+          }}
+        />
+      )}
     </Card>
   )
 }

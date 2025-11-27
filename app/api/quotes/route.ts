@@ -45,10 +45,12 @@ export async function GET(request: Request) {
         const selectedQuote = userQuotes[quoteIndex]
 
         return NextResponse.json({
+          id: selectedQuote.id,
           quoteText: selectedQuote.quoteText,
           bookTitle: selectedQuote.book?.title || null,
           bookAuthor: selectedQuote.book?.author || null,
           pageNumber: selectedQuote.pageNumber,
+          bookId: selectedQuote.bookId,
           isUserQuote: true,
         })
       } else {

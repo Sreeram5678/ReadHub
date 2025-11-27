@@ -18,7 +18,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 
 interface Book {
@@ -27,23 +26,44 @@ interface Book {
   author: string
 }
 
-interface AddQuoteFormProps {
-  onQuoteAdded: () => void
+interface Quote {
+  id: string
+  quoteText: string
+  bookId: string | null
+  pageNumber: number | null
 }
 
-export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
-  const [open, setOpen] = useState(false)
+interface EditQuoteFormProps {
+  quote: Quote
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onQuoteUpdated: () => void
+}
+
+export function EditQuoteForm({
+  quote,
+  open,
+  onOpenChange,
+  onQuoteUpdated,
+}: EditQuoteFormProps) {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    quoteText: "",
-    bookId: "",
-    pageNumber: "",
+    quoteText: quote.quoteText,
+    bookId: quote.bookId || "",
+    pageNumber: quote.pageNumber?.toString() || "",
   })
 
   useEffect(() => {
-    fetchBooks()
-  }, [])
+    if (open) {
+      setFormData({
+        quoteText: quote.quoteText,
+        bookId: quote.bookId || "",
+        pageNumber: quote.pageNumber?.toString() || "",
+      })
+      fetchBooks()
+    }
+  }, [quote, open])
 
   const fetchBooks = async () => {
     try {
@@ -62,8 +82,8 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/quotes", {
-        method: "POST",
+      const response = await fetch(`/api/quotes/${quote.id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           quoteText: formData.quoteText,
@@ -74,19 +94,42 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Failed to add quote")
+        throw new Error(error.error || "Failed to update quote")
       }
 
-      setFormData({
-        quoteText: "",
-        bookId: "",
-        pageNumber: "",
-      })
-      setOpen(false)
-      onQuoteAdded()
+      onOpenChange(false)
+      onQuoteUpdated()
     } catch (error) {
-      console.error("Error adding quote:", error)
-      const errorMessage = error instanceof Error ? error.message : "Failed to add quote. Please try again."
+      console.error("Error updating quote:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to update quote. Please try again."
+      alert(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this quote?")) {
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/quotes/${quote.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to delete quote")
+      }
+
+      onOpenChange(false)
+      onQuoteUpdated()
+    } catch (error) {
+      console.error("Error deleting quote:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete quote. Please try again."
       alert(errorMessage)
     } finally {
       setLoading(false)
@@ -94,17 +137,12 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          Add Quote
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Quote</DialogTitle>
+          <DialogTitle>Edit Quote</DialogTitle>
           <DialogDescription>
-            Save a favorite quote from your reading
+            Update your saved quote
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -151,9 +189,19 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
               />
             </div>
           )}
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Adding..." : "Add Quote"}
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={loading} className="flex-1">
+              {loading ? "Updating..." : "Update Quote"}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              Delete
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

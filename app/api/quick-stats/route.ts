@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { calculateReadingStreak } from "@/lib/streaks"
+import { getUserTimezone } from "@/lib/user-timezone"
 
 export async function GET() {
   try {
@@ -41,7 +42,8 @@ export async function GET() {
     )
     const totalPagesRead =
       (readingLogsSum._sum.pagesRead || 0) + initialPagesSum
-    const readingStreak = calculateReadingStreak(allLogs)
+    const userTimezone = await getUserTimezone(userId)
+    const readingStreak = calculateReadingStreak(allLogs, userTimezone)
 
     const statsText = `${totalBooks} book${totalBooks !== 1 ? "s" : ""}, ${totalPagesRead.toLocaleString()} pages, ${readingStreak}-day streak`
 

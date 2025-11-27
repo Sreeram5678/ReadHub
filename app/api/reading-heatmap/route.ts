@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { getUserTimezone } from "@/lib/user-timezone"
+import { formatDateInTimezone, getTodayInTimezone, getStartOfDayInTimezone } from "@/lib/timezone"
 
 export async function GET(request: Request) {
   try {
@@ -16,11 +18,12 @@ export async function GET(request: Request) {
       userId: session.user.id,
     }
 
+    const userTimezone = await getUserTimezone(session.user.id)
+    
     if (range !== "all") {
       const days = parseInt(range)
-      const startDate = new Date()
-      startDate.setDate(startDate.getDate() - days)
-      startDate.setHours(0, 0, 0, 0)
+      const today = getTodayInTimezone(userTimezone)
+      const startDate = new Date(today.getTime() - days * 24 * 60 * 60 * 1000)
       where.date = {
         gte: startDate,
       }
@@ -34,20 +37,10 @@ export async function GET(request: Request) {
       },
     })
 
-    // Helper to format a Date as YYYY-MM-DD in the user's local timezone
-    const formatLocalDate = (date: Date) => {
-      const local = new Date(date)
-      local.setHours(0, 0, 0, 0)
-      const year = local.getFullYear()
-      const month = String(local.getMonth() + 1).padStart(2, "0")
-      const day = String(local.getDate()).padStart(2, "0")
-      return `${year}-${month}-${day}`
-    }
-
-    // Group by local date and sum pages
+    // Group by date in user's timezone and sum pages
     const dateMap = new Map<string, number>()
     logs.forEach((log) => {
-      const dateKey = formatLocalDate(log.date)
+      const dateKey = formatDateInTimezone(log.date, userTimezone)
       const current = dateMap.get(dateKey) || 0
       dateMap.set(dateKey, current + log.pagesRead)
     })

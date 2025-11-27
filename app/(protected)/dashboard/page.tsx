@@ -5,6 +5,8 @@ import { DashboardClient } from "@/components/dashboard/DashboardClient"
 import { calculateReadingStreak, getReadingDaysInPeriod } from "@/lib/streaks"
 import { cache, Suspense } from "react"
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
+import { getUserTimezone } from "@/lib/user-timezone"
+import { getTodayInTimezone } from "@/lib/timezone"
 
 const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
@@ -32,6 +34,7 @@ export default async function DashboardPage() {
   }
 
   const userId = session.user.id
+  const userTimezone = await getUserTimezone(userId)
 
   // Optimize: Combine book counts and fetch books data in parallel
   const [
@@ -60,8 +63,7 @@ export default async function DashboardPage() {
       _sum: { pagesRead: true },
     }),
     (async () => {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      const today = getTodayInTimezone(userTimezone)
       return db.readingLog.aggregate({
         where: {
           userId,
@@ -144,9 +146,9 @@ export default async function DashboardPage() {
   const totalPagesRead =
     (readingLogsSum._sum.pagesRead || 0) + initialPagesSum
 
-  const readingStreak = calculateReadingStreak(allLogs)
-  const daysReadThisWeek = getReadingDaysInPeriod(allLogs, 7)
-  const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30)
+  const readingStreak = calculateReadingStreak(allLogs, userTimezone)
+  const daysReadThisWeek = getReadingDaysInPeriod(allLogs, 7, userTimezone)
+  const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30, userTimezone)
 
   let savedPreferences: any = null
   if (dashboardPreferences?.layoutJson) {
