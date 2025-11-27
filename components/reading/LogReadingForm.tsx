@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,6 +25,9 @@ interface Book {
   id: string
   title: string
   author: string
+  totalPages: number
+  currentPage?: number | null
+  initialPages?: number | null
 }
 
 export function LogReadingForm({
@@ -36,27 +39,125 @@ export function LogReadingForm({
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [bookPageOverrides, setBookPageOverrides] = useState<Record<string, number>>({})
   const [formData, setFormData] = useState({
     bookId: "",
-    pagesRead: "",
+    startPage: "",
+    endPage: "",
     date: new Date().toISOString().split("T")[0],
   })
 
+  const getStartPageForBook = useCallback(
+    (book?: Book) => {
+      if (!book) return ""
+      const override = bookPageOverrides[book.id]
+      const lastReadPage =
+        override !== undefined
+          ? override
+          : (book.initialPages || 0) + (book.currentPage || 0)
+      const nextPage =
+        lastReadPage >= book.totalPages ? book.totalPages : lastReadPage + 1
+      return nextPage.toString()
+    },
+    [bookPageOverrides]
+  )
+
   useEffect(() => {
     if (books.length > 0) {
-      setFormData(prev => ({ ...prev, bookId: books[0].id }))
+      setFormData(prev => {
+        if (prev.bookId) {
+          return prev
+        }
+        const defaultBook = books[0]
+        return {
+          ...prev,
+          bookId: defaultBook.id,
+          startPage: getStartPageForBook(defaultBook),
+          endPage: "",
+        }
+      })
     }
-  }, [books])
+  }, [books, getStartPageForBook])
+
+  const selectedBook = useMemo(
+    () => books.find((book) => book.id === formData.bookId),
+    [books, formData.bookId]
+  )
+
+  const computedPagesRead = useMemo(() => {
+    const start = parseInt(formData.startPage, 10)
+    const end = parseInt(formData.endPage, 10)
+    if (Number.isNaN(start) || Number.isNaN(end)) {
+      return null
+    }
+    const diff = end - start + 1
+    return diff > 0 ? diff : null
+  }, [formData.startPage, formData.endPage])
+
+  const handleBookChange = (bookId: string) => {
+    const book = books.find((b) => b.id === bookId)
+    setFormData({
+      bookId,
+      startPage: getStartPageForBook(book),
+      endPage: "",
+      date: formData.date,
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.bookId) {
+      alert("Please select a book")
+      return
+    }
+
+    const book = selectedBook
+    if (!book) {
+      alert("Selected book not found")
+      return
+    }
+
+    const startPage = parseInt(formData.startPage, 10)
+    const endPage = parseInt(formData.endPage, 10)
+
+    if (Number.isNaN(startPage) || Number.isNaN(endPage)) {
+      alert("Please enter valid start and end pages")
+      return
+    }
+
+    if (startPage < 1) {
+      alert("Start page must be at least 1")
+      return
+    }
+
+    if (endPage > book.totalPages) {
+      alert(`End page cannot exceed ${book.totalPages}`)
+      return
+    }
+
+    if (endPage < startPage) {
+      alert("End page must be greater than or equal to start page")
+      return
+    }
+
+    const pagesRead = endPage - startPage + 1
+
+    if (pagesRead <= 0) {
+      alert("Please enter a valid page range")
+      return
+    }
+
     setLoading(true)
 
     try {
       const response = await fetch("/api/reading-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          bookId: formData.bookId,
+          pagesRead,
+          date: formData.date,
+        }),
       })
 
       if (!response.ok) {
@@ -64,9 +165,16 @@ export function LogReadingForm({
         throw new Error(error.error || "Failed to log reading")
       }
 
+      const lastReadPage = Math.min(endPage, book.totalPages)
+      setBookPageOverrides((prev) => ({
+        ...prev,
+        [book.id]: lastReadPage,
+      }))
+
       setFormData({
-        bookId: books.length > 0 ? books[0].id : "",
-        pagesRead: "",
+        bookId: book.id,
+        startPage: Math.min(lastReadPage + 1, book.totalPages).toString(),
+        endPage: "",
         date: new Date().toISOString().split("T")[0],
       })
       setOpen(false)
@@ -110,9 +218,7 @@ export function LogReadingForm({
             <Label htmlFor="book">Book</Label>
             <Select
               value={formData.bookId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, bookId: value })
-              }
+              onValueChange={handleBookChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a book" />
@@ -126,19 +232,47 @@ export function LogReadingForm({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="pagesRead">Pages Read</Label>
-            <Input
-              id="pagesRead"
-              type="number"
-              value={formData.pagesRead}
-              onChange={(e) =>
-                setFormData({ ...formData, pagesRead: e.target.value })
-              }
-              required
-              min="1"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="startPage">Start Page</Label>
+              <Input
+                id="startPage"
+                type="number"
+                value={formData.startPage}
+                onChange={(e) =>
+                  setFormData({ ...formData, startPage: e.target.value })
+                }
+                required
+                min={1}
+                max={selectedBook?.totalPages}
+              />
+              <p className="text-xs text-muted-foreground">
+                Prefilled from your last log. Adjust if needed.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endPage">Ending Page</Label>
+              <Input
+                id="endPage"
+                type="number"
+                value={formData.endPage}
+                onChange={(e) =>
+                  setFormData({ ...formData, endPage: e.target.value })
+                }
+                required
+                min={formData.startPage || "1"}
+                max={selectedBook?.totalPages}
+              />
+              <p className="text-xs text-muted-foreground">
+                Where you stopped reading this session.
+              </p>
+            </div>
           </div>
+          {computedPagesRead !== null && (
+            <p className="text-sm text-muted-foreground">
+              This will log {computedPagesRead} page{computedPagesRead === 1 ? "" : "s"}.
+            </p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="date">Date</Label>
             <Input
