@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Merriweather } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
-  preload: true,
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const merriweather = Merriweather({
+  variable: "--font-serif",
   subsets: ["latin"],
   display: "swap",
+  weight: ["300", "400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -29,9 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${merriweather.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
         <SpeedInsights />
       </body>

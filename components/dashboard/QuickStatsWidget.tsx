@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Share2, Copy, Check } from "lucide-react"
 
@@ -49,17 +49,9 @@ export function QuickStatsWidget() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Share2 className="h-5 w-5" />
-            Quick Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="min-h-[220px] flex items-center">
-          <p className="text-muted-foreground">Loading stats...</p>
-        </CardContent>
-      </Card>
+      <motion.div className="card-surface min-h-[220px] rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]">
+        <p className="text-sm text-muted">Loading stats...</p>
+      </motion.div>
     )
   }
 
@@ -68,38 +60,36 @@ export function QuickStatsWidget() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Share2 className="h-5 w-5" />
-          Quick Stats
-        </CardTitle>
-        <CardDescription>Share your reading progress</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
-        <div className="p-4 bg-muted rounded-lg">
-          <p className="text-lg font-medium text-center">{stats.text}</p>
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="card-surface min-h-[240px] rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]"
+    >
+      <div className="mb-4 flex items-center gap-3">
+        <Share2 className="h-5 w-5 text-[color:var(--accent)]" />
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted">Quick Stats</p>
+          <p className="serif-heading text-2xl text-[color:var(--text)]">Shareable snapshot</p>
         </div>
-        <Button
-          onClick={handleCopy}
-          variant="outline"
-          className="w-full"
-          disabled={copied}
-        >
-          {copied ? (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="mr-2 h-4 w-4" />
-              Copy Stats
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="rounded-[1.25rem] border border-card-border/60 bg-[color:var(--surface)]/70 p-4 text-center shadow-inner">
+        <p className="text-sm text-muted">Copy & share</p>
+        <p className="mt-2 text-lg font-semibold text-[color:var(--text)]">{stats.text}</p>
+      </div>
+      <Button onClick={handleCopy} variant="outline" className="mt-4 w-full" disabled={copied}>
+        {copied ? (
+          <>
+            <Check className="mr-2 h-4 w-4" />
+            Copied!
+          </>
+        ) : (
+          <>
+            <Copy className="mr-2 h-4 w-4" />
+            Copy Stats
+          </>
+        )}
+      </Button>
+    </motion.div>
   )
 }
 

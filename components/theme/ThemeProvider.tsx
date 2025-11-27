@@ -13,33 +13,34 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system")
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light")
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "system"
+    const stored = localStorage.getItem("theme") as Theme | null
+    return stored ?? "system"
+  })
+  const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light"
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  })
+  const resolvedTheme = theme === "system" ? systemTheme : theme
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null
-    if (stored) {
-      setThemeState(stored)
+    const mq = window.matchMedia("(prefers-color-scheme: dark)")
+    const handleChange = (event: MediaQueryListEvent) => {
+      setSystemTheme(event.matches ? "dark" : "light")
+    }
+    mq.addEventListener("change", handleChange)
+    return () => {
+      mq.removeEventListener("change", handleChange)
     }
   }, [])
 
   useEffect(() => {
     const root = window.document.documentElement
     root.classList.remove("light", "dark")
-
-    let resolved: "light" | "dark" = "light"
-
-    if (theme === "system") {
-      resolved = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light"
-    } else {
-      resolved = theme
-    }
-
-    root.classList.add(resolved)
-    setResolvedTheme(resolved)
-  }, [theme])
+    root.classList.add(resolvedTheme)
+    root.setAttribute("data-theme", resolvedTheme)
+  }, [resolvedTheme])
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)

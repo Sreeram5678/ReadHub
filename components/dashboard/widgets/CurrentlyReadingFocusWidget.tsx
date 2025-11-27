@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useMemo } from "react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { BookOpen, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -22,93 +22,75 @@ interface CurrentlyReadingFocusWidgetProps {
 
 export function CurrentlyReadingFocusWidget({ books }: CurrentlyReadingFocusWidgetProps) {
   const router = useRouter()
-  const [currentlyReading, setCurrentlyReading] = useState<Book | null>(null)
-
-  useEffect(() => {
-    if (books.length > 0) {
-      const book = books[0]
-      const totalPagesRead = (book.initialPages || 0) + book.readingLogs.reduce(
-        (sum, log) => sum + log.pagesRead,
-        0
-      )
-      if (totalPagesRead < book.totalPages) {
-        setCurrentlyReading(book)
-      } else {
-        setCurrentlyReading(null)
-      }
-    } else {
-      setCurrentlyReading(null)
+  const currentlyReading = useMemo(() => {
+    if (books.length === 0) {
+      return null
     }
+    const book = books[0]
+    const totalPagesRead =
+      (book.initialPages || 0) + book.readingLogs.reduce((sum, log) => sum + log.pagesRead, 0)
+    return totalPagesRead < book.totalPages ? book : null
   }, [books])
 
+  const emptyState = (
+    <motion.div
+      whileHover={{ y: -2 }}
+      className="card-surface rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]"
+    >
+      <div className="flex items-center gap-3">
+        <BookOpen className="h-5 w-5 text-[color:var(--accent)]" />
+        <div>
+          <p className="serif-heading text-xl">Currently Reading</p>
+          <p className="text-sm text-muted">No active book yet.</p>
+        </div>
+      </div>
+      <p className="mt-4 text-sm text-muted">Start a new book to see a focused summary here.</p>
+    </motion.div>
+  )
+
   if (!currentlyReading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg flex items-center gap-2">
-            <BookOpen className="h-4 w-4 md:h-5 md:w-5" />
-            Currently Reading
-          </CardTitle>
-          <CardDescription className="text-xs md:text-sm">Your active book</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            No book currently being read. Start reading a book to see it here!
-          </p>
-        </CardContent>
-      </Card>
-    )
+    return emptyState
   }
 
-  const totalPagesRead = (currentlyReading.initialPages || 0) + currentlyReading.readingLogs.reduce(
-    (sum, log) => sum + log.pagesRead,
-    0
-  )
+  const totalPagesRead =
+    (currentlyReading.initialPages || 0) +
+    currentlyReading.readingLogs.reduce((sum, log) => sum + log.pagesRead, 0)
   const progress = (totalPagesRead / currentlyReading.totalPages) * 100
   const remainingPages = Math.max(0, currentlyReading.totalPages - totalPagesRead)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base md:text-lg flex items-center gap-2">
-          <BookOpen className="h-4 w-4 md:h-5 md:w-5" />
-          Currently Reading
-        </CardTitle>
-        <CardDescription className="text-xs md:text-sm">Your active book</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="card-surface rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]"
+    >
+      <div className="flex items-center gap-3">
+        <BookOpen className="h-5 w-5 text-[color:var(--accent)]" />
         <div>
-          <h3 className="font-semibold line-clamp-1">{currentlyReading.title}</h3>
-          <p className="text-sm text-muted-foreground">by {currentlyReading.author}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted">Currently Reading</p>
+          <p className="serif-heading text-2xl">{currentlyReading.title}</p>
+          <p className="text-sm text-muted">by {currentlyReading.author}</p>
         </div>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">
-              {totalPagesRead} / {currentlyReading.totalPages} pages
-            </span>
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-            <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {Math.round(progress)}% complete • {remainingPages} pages remaining
-          </p>
+      </div>
+      <div className="mt-4 space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted">Progress</span>
+          <span className="font-medium">
+            {totalPagesRead} / {currentlyReading.totalPages} pages
+          </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => router.push("/books")}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Log Reading
-        </Button>
-      </CardContent>
-    </Card>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted/20">
+          <div className="h-full rounded-full bg-[color:var(--accent)] transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+        </div>
+        <p className="text-xs text-muted">
+          {Math.round(progress)}% complete • {remainingPages} pages remaining
+        </p>
+      </div>
+      <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => router.push("/books")}>
+        <Plus className="mr-2 h-4 w-4" />
+        Log Reading
+      </Button>
+    </motion.div>
   )
 }
 

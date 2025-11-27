@@ -4,10 +4,6 @@ import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
-import { ReadingStreakWidget } from "./widgets/ReadingStreakWidget"
-import { StatsWidget } from "./widgets/StatsWidget"
-import { ThisWeekWidget } from "./widgets/ThisWeekWidget"
-import { ThisMonthWidget } from "./widgets/ThisMonthWidget"
 import { ReadingGoals } from "./ReadingGoals"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { DailyQuote } from "@/components/reading/DailyQuote"
@@ -17,6 +13,9 @@ import { ReadingStreakHeatmap } from "./ReadingStreakHeatmap"
 import { AchievementsList } from "@/components/achievements/AchievementsList"
 import { QuickStatsWidget } from "./QuickStatsWidget"
 import { RecentActivityWidget } from "./widgets/RecentActivityWidget"
+import { DashboardHero } from "./DashboardHero"
+import { StatCard } from "@/components/ui/StatCard"
+import { BookOpen, BookOpenCheck, Calendar, Flame, Target } from "lucide-react"
 import dynamic from "next/dynamic"
 
 const ReadingTrendsChartLazy = dynamic(
@@ -121,39 +120,73 @@ export function DashboardClient({
   }, [readingTrends])
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Welcome back, {userName}!
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <LogReadingForm books={books} onLogAdded={refreshData} />
-        </div>
-      </div>
-
-      {/* Row 1: key stats */}
-      <StatsWidget
-        totalBooks={totalBooks}
-        completedBooks={completedBooks}
-        completionPercentage={completionPercentage}
+    <div className="space-y-10">
+      <DashboardHero
+        userName={userName}
         totalPagesRead={totalPagesRead}
         todayPages={todayPages}
+        readingStreak={readingStreak}
+        completionPercentage={completionPercentage}
       />
 
-      {/* Row 2: streak + weekly + monthly + goals */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <ReadingStreakWidget readingStreak={readingStreak} />
-        <ThisWeekWidget
-          weeklyPages={weeklyPages}
-          daysReadThisWeek={daysReadThisWeek}
+      <section className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+        <Card className="h-full">
+          <ReadingTrendsChartLazy trends={readingTrends} />
+        </Card>
+        <div className="space-y-6">
+          <div className="card-surface rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted">Deep session</p>
+                <p className="serif-heading text-2xl text-[color:var(--text)]">Reading Timer</p>
+              </div>
+              <LogReadingForm books={books} onLogAdded={refreshData} />
+            </div>
+            <div className="mt-4 rounded-[1.25rem] border border-card-border/70 p-4">
+              <ReadingSessionTimer books={books} />
+            </div>
+          </div>
+          <QuickReadingLog books={books} onLogAdded={refreshData} />
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <StatCard
+          label="Library"
+          value={`${totalBooks} books`}
+          description={`${completedBooks} completed`}
+          icon={<BookOpen className="h-4 w-4 text-[color:var(--accent)]" />}
         />
-        <ThisMonthWidget
-          monthlyPages={monthlyPages}
-          daysReadThisMonth={daysReadThisMonth}
+        <StatCard
+          label="Streak"
+          value={`${readingStreak} days`}
+          description="Consecutive days logged"
+          icon={<Flame className="h-4 w-4 text-[color:var(--accent)]" />}
         />
+        <StatCard
+          label="Today"
+          value={`${todayPages} pages`}
+          description="Pages logged today"
+          icon={<BookOpenCheck className="h-4 w-4 text-[color:var(--accent)]" />}
+        />
+        <StatCard
+          label="Weekly"
+          value={`${weeklyPages} pages`}
+          description={`${daysReadThisWeek} active days`}
+          icon={<Calendar className="h-4 w-4 text-[color:var(--accent)]" />}
+        />
+        <StatCard
+          label="Monthly"
+          value={`${monthlyPages} pages`}
+          description={`${daysReadThisMonth} reading days`}
+          icon={<Target className="h-4 w-4 text-[color:var(--accent)]" />}
+        />
+        <div className="xl:col-span-1 md:col-span-2">
+          <QuickStatsWidget />
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <ReadingGoals
           goals={readingGoals}
           currentProgress={{
@@ -163,31 +196,18 @@ export function DashboardClient({
           }}
           onGoalAdded={refreshData}
         />
-      </div>
+        <div className="grid gap-6">
+          <DailyQuote />
+          <ReadingSpeedTest />
+        </div>
+      </section>
 
-      {/* Row 3: trends + timer */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <ReadingTrendsChartLazy trends={readingTrends} />
-        <ReadingSessionTimer books={books} />
-      </div>
-
-      {/* Row 4: daily quote + quick log */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <DailyQuote />
-        <QuickReadingLog books={books} onLogAdded={refreshData} />
-      </div>
-
-      {/* Row 5: heatmap */}
       <ReadingStreakHeatmap />
 
-      {/* Row 6: achievements + quick stats */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-2">
         <AchievementsList />
-        <QuickStatsWidget />
-      </div>
-
-      {/* Row 7: recent activity */}
-      <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
+        <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
+      </section>
     </div>
   )
 }
