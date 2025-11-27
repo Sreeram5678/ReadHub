@@ -76,48 +76,50 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorPages" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.15} />
             <XAxis
               dataKey="date"
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
               angle={-45}
               textAnchor="end"
               height={80}
-              stroke="hsl(var(--border))"
+              stroke="hsl(var(--muted-foreground))"
+              opacity={0.6}
             />
             <YAxis 
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              stroke="hsl(var(--border))"
+              stroke="hsl(var(--muted-foreground))"
+              opacity={0.6}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
+                border: "1px solid hsl(var(--muted-foreground))",
                 borderRadius: "8px",
                 boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
                 padding: "8px 12px",
               }}
               labelStyle={{
-                color: "hsl(var(--foreground))",
+                color: "hsl(var(--card-foreground))",
                 fontWeight: 600,
                 marginBottom: "4px",
               }}
               itemStyle={{
-                color: "hsl(var(--foreground))",
+                color: "hsl(var(--card-foreground))",
               }}
             />
             <Area
               type="monotone"
               dataKey="pages"
-              stroke="hsl(var(--primary))"
-              strokeWidth={3}
+              stroke="hsl(var(--chart-1))"
+              strokeWidth={2.5}
               fill="url(#colorPages)"
-              dot={{ r: 5, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
-              activeDot={{ r: 7, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
+              dot={{ r: 4, fill: "hsl(var(--chart-1))", strokeWidth: 2, stroke: "hsl(var(--card))" }}
+              activeDot={{ r: 6, fill: "hsl(var(--chart-1))", strokeWidth: 2, stroke: "hsl(var(--card))" }}
             />
           </AreaChart>
         </ResponsiveContainer>

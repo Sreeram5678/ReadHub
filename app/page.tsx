@@ -1,8 +1,13 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { auth } from "@/lib/auth"
+import { LandingHero } from "@/components/landing/LandingHero"
+import { LandingFeatures } from "@/components/landing/LandingFeatures"
+import { LandingCommunity } from "@/components/landing/LandingCommunity"
+import { LandingShowcase } from "@/components/landing/LandingShowcase"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Footer } from "@/components/layout/Footer"
 
 export const dynamic = 'force-dynamic'
 
@@ -20,51 +25,47 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-4xl space-y-8 text-center">
-        <div className="space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-            ReadHub
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Track your daily reading progress, compete with friends, and build
-            better reading habits.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
+      <MarketingNav />
+      <main className="mx-auto flex max-w-6xl flex-col gap-16 px-4 py-10 sm:gap-20 sm:py-16">
+        <LandingHero />
+        <LandingFeatures />
+        <LandingCommunity />
+        <LandingShowcase />
+      </main>
+      <Footer />
+    </div>
+  )
+}
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Track Progress</CardTitle>
-              <CardDescription>
-                Log pages read daily for each book you're reading
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Compete</CardTitle>
-              <CardDescription>
-                See how you rank on the leaderboard with your friends
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Build Habits</CardTitle>
-              <CardDescription>
-                Track your reading streaks and maintain consistency
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        <div className="flex justify-center gap-4">
-          <Button asChild size="lg">
+function MarketingNav() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-card-border/70 bg-[color:var(--surface)]/70 backdrop-blur-2xl">
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4">
+        <Link href="/" className="serif-heading text-2xl font-semibold">
+          ReadHub
+        </Link>
+        <nav className="hidden items-center gap-6 text-sm text-muted md:flex">
+          <Link href="#features" className="transition-colors hover:text-[color:var(--text)]">
+            Features
+          </Link>
+          <Link href="#community" className="transition-colors hover:text-[color:var(--text)]">
+            Community
+          </Link>
+          <Link href="#screens" className="transition-colors hover:text-[color:var(--text)]">
+            App Tour
+          </Link>
+        </nav>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/login">Log In</Link>
+          </Button>
+          <Button asChild size="sm">
             <Link href="/login">Get Started</Link>
           </Button>
         </div>
       </div>
-    </div>
+    </header>
   )
 }
