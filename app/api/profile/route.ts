@@ -12,26 +12,32 @@ export async function GET() {
 
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        bio: true,
-        timezone: true,
-        createdAt: true,
-      },
     })
 
     if (!user) {
+      console.error("User not found for ID:", session.user.id)
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    return NextResponse.json(user)
+    const { password, emailVerified, ...userData } = user as any
+
+    return NextResponse.json({
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      image: userData.image,
+      bio: userData.bio || null,
+      timezone: userData.timezone || "Asia/Kolkata",
+      createdAt: userData.createdAt,
+    })
   } catch (error) {
     console.error("Error fetching profile:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json(
-      { error: "Failed to fetch profile" },
+      { 
+        error: "Failed to fetch profile",
+        details: process.env.NODE_ENV === "development" ? errorMessage : undefined
+      },
       { status: 500 }
     )
   }
@@ -77,23 +83,24 @@ export async function PUT(request: Request) {
     const updatedUser = await db.user.update({
       where: { id: session.user.id },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        bio: true,
-        timezone: true,
-        createdAt: true,
-      },
     })
+
+    const { password, emailVerified, ...userData } = updatedUser as any
 
     // Clear timezone cache for this user
     if (timezone) {
       clearUserTimezoneCache(session.user.id)
     }
 
-    return NextResponse.json(updatedUser)
+    return NextResponse.json({
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      image: userData.image,
+      bio: userData.bio || null,
+      timezone: userData.timezone || "Asia/Kolkata",
+      createdAt: userData.createdAt,
+    })
   } catch (error) {
     console.error("Error updating profile:", error)
     return NextResponse.json(

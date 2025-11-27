@@ -112,6 +112,7 @@ export function ProfilePageClient() {
   const fetchProfile = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await fetch("/api/profile")
       if (response.ok) {
         const data = await response.json()
@@ -123,10 +124,13 @@ export function ProfilePageClient() {
           timezone: data.timezone || "Asia/Kolkata",
         })
       } else {
-        setError("Failed to load profile")
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        setError(errorData.error || "Failed to load profile")
+        console.error("Profile API error:", response.status, errorData)
       }
     } catch (err) {
-      setError("Failed to load profile")
+      const errorMessage = err instanceof Error ? err.message : "Failed to load profile"
+      setError(errorMessage)
       console.error("Error fetching profile:", err)
     } finally {
       setLoading(false)
