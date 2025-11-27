@@ -17,6 +17,9 @@ const getBooks = cache(async (userId: string) => {
       id: true,
       title: true,
       author: true,
+      totalPages: true,
+      currentPage: true,
+      initialPages: true,
     },
   })
 })
