@@ -132,9 +132,7 @@ export function DashboardClient({
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
         <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
-          <Card className="h-full">
-            <ReadingTrendsChartLazy trends={readingTrends} />
-          </Card>
+          <ReadingTrendsChartLazy trends={readingTrends} />
           <div className="space-y-6">
             <Card>
               <div className="flex items-center justify-between mb-4">
@@ -194,7 +192,7 @@ export function DashboardClient({
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Goals & Insights</h2>
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start">
           <ReadingGoals
             goals={readingGoals}
             currentProgress={{
