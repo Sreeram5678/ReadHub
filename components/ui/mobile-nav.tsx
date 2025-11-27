@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { signOutAction } from "@/app/actions/auth"
 import { cn } from "@/lib/utils"
 
 interface MobileNavProps {
@@ -44,6 +43,7 @@ export function MobileNav({ userName }: MobileNavProps) {
               { href: "/challenges", label: "Challenges" },
               { href: "/reminders", label: "Reminders" },
               { href: "/groups", label: "Groups" },
+              { href: "/profile", label: "Profile" },
             ].map(({ href, label }) => (
               <Link
                 key={href}
@@ -63,11 +63,6 @@ export function MobileNav({ userName }: MobileNavProps) {
             <div className="mt-3 rounded-xl border border-dashed border-card-border/60 px-4 py-3 text-sm text-muted">
               {userName}
             </div>
-            <form action={signOutAction} className="mt-3">
-              <Button type="submit" variant="outline" size="sm" className="w-full justify-center rounded-full">
-                Sign Out
-              </Button>
-            </form>
           </div>
         </div>
       )}

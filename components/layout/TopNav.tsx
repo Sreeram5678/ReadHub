@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "@/components/ui/mobile-nav"
 import { cn } from "@/lib/utils"
-import { signOutAction } from "@/app/actions/auth"
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -81,17 +80,15 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
             <Button asChild size="sm">
               <Link href="/dashboard#log-reading">Log Reading</Link>
             </Button>
-            <form action={signOutAction}>
-              <Button variant="ghost" size="sm" className="text-xs text-muted hover:text-[color:var(--text)]">
-                Sign Out
-              </Button>
-            </form>
-            <div className="flex items-center gap-3 rounded-full border border-card-border/80 bg-[color:var(--surface)]/60 px-3 py-1.5">
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 rounded-full border border-card-border/80 bg-[color:var(--surface)]/60 px-3 py-1.5 transition-all hover:bg-[color:var(--surface)]/80 hover:border-card-border cursor-pointer"
+            >
               <span className="text-xs font-medium text-muted">{userName}</span>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--accent)]/12 text-sm font-semibold text-[color:var(--accent)]">
                 {initials || "RH"}
               </div>
-            </div>
+            </Link>
           </div>
           <MobileNav userName={userName} />
         </div>

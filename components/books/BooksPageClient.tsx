@@ -5,7 +5,6 @@ import { AddBookForm } from "./AddBookForm"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookActions } from "./BookActions"
 import { ProgressRing } from "@/components/ui/progress-ring"
-import { BookTimeEstimate } from "./BookTimeEstimate"
 import {
   Select,
   SelectContent,
@@ -175,9 +174,6 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
                       <p className="text-xs text-muted-foreground">
                         {isCompleted ? "100% complete" : `${Math.round(progress)}% complete`}
                       </p>
-                      {!isCompleted && remainingPages > 0 && (
-                        <BookTimeEstimate remainingPages={remainingPages} />
-                      )}
                     </div>
                   </div>
                 </CardContent>

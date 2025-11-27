@@ -38,6 +38,30 @@ export function LogReadingForm({
   onLogAdded: () => void
 }) {
   const [open, setOpen] = useState(false)
+  
+  useEffect(() => {
+    const checkHash = () => {
+      if (typeof window !== "undefined" && window.location.hash === "#log-reading") {
+        setOpen(true)
+        window.history.replaceState(null, "", window.location.pathname)
+      }
+    }
+    
+    checkHash()
+    
+    const timer = setTimeout(() => {
+      checkHash()
+    }, 100)
+    
+    window.addEventListener("hashchange", checkHash)
+    window.addEventListener("popstate", checkHash)
+    
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("hashchange", checkHash)
+      window.removeEventListener("popstate", checkHash)
+    }
+  }, [])
   const [loading, setLoading] = useState(false)
   const [bookPageOverrides, setBookPageOverrides] = useState<Record<string, number>>({})
   const [userTimezone, setUserTimezone] = useState<string>("Asia/Kolkata")
@@ -214,15 +238,23 @@ export function LogReadingForm({
     )
   }
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen && window.location.hash === "#log-reading") {
+      window.history.replaceState(null, "", window.location.pathname)
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full sm:w-auto">
-          <BookOpen className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Log Reading</span>
-          <span className="sm:hidden">Log</span>
-        </Button>
-      </DialogTrigger>
+    <div id="log-reading">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          <Button className="w-full sm:w-auto">
+            <BookOpen className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Log Reading</span>
+            <span className="sm:hidden">Log</span>
+          </Button>
+        </DialogTrigger>
       <DialogContent className="mx-4 max-w-[calc(100vw-2rem)]">
         <DialogHeader>
           <DialogTitle>Log Reading</DialogTitle>
@@ -307,7 +339,8 @@ export function LogReadingForm({
           </Button>
         </form>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </div>
   )
 }
 

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { parseDateInTimezone, getTodayInTimezone } from "@/lib/timezone"
+import { updateChallengeProgress } from "@/lib/challenges"
 
 export async function GET(request: Request) {
   try {
@@ -103,6 +104,8 @@ export async function POST(request: Request) {
         },
       })
 
+      await updateChallengeProgress(session.user.id)
+
       return NextResponse.json(updatedLog)
     }
 
@@ -124,6 +127,8 @@ export async function POST(request: Request) {
         ),
       },
     })
+
+    await updateChallengeProgress(session.user.id)
 
     return NextResponse.json(log, { status: 201 })
   } catch (error) {

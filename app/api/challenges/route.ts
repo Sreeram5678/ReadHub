@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
+import { calculateChallengeProgress } from "@/lib/challenges"
 
 export async function GET(request: Request) {
   try {
@@ -10,6 +11,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const userId = session.user.id
     const { searchParams } = new URL(request.url)
     const filter = searchParams.get("filter") || "all" // all, my, public, joined
 
@@ -18,24 +20,24 @@ export async function GET(request: Request) {
     let where: Prisma.ChallengeWhereInput = {}
 
     if (filter === "my") {
-      where.creatorId = session.user.id
+      where.creatorId = userId
     } else if (filter === "public") {
       where.isPublic = true
       where.endDate = { gte: now }
     } else if (filter === "joined") {
       where.participants = {
         some: {
-          userId: session.user.id,
+          userId,
         },
       }
     } else {
       where.OR = [
-        { creatorId: session.user.id },
+        { creatorId: userId },
         { isPublic: true, endDate: { gte: now } },
         {
           participants: {
             some: {
-              userId: session.user.id,
+              userId,
             },
           },
         },
@@ -55,7 +57,7 @@ export async function GET(request: Request) {
         },
         participants: {
           where: {
-            userId: session.user.id,
+            userId,
           },
         },
         _count: {
@@ -69,24 +71,37 @@ export async function GET(request: Request) {
       },
     })
 
-    const challengesWithProgress = challenges.map((challenge) => {
-      const userParticipant = challenge.participants[0]
-      return {
-        id: challenge.id,
-        title: challenge.title,
-        description: challenge.description,
-        type: challenge.type,
-        target: challenge.target,
-        startDate: challenge.startDate,
-        endDate: challenge.endDate,
-        isPublic: challenge.isPublic,
-        creator: challenge.creator,
-        participantCount: challenge._count.participants,
-        userProgress: userParticipant?.progress || 0,
-        isJoined: !!userParticipant,
-        createdAt: challenge.createdAt,
-      }
-    })
+    const challengesWithProgress = await Promise.all(
+      challenges.map(async (challenge) => {
+        const userParticipant = challenge.participants[0]
+        let userProgress = userParticipant?.progress || 0
+
+        if (userParticipant) {
+          userProgress = await calculateChallengeProgress(userId, {
+            id: challenge.id,
+            type: challenge.type,
+            startDate: challenge.startDate,
+            endDate: challenge.endDate,
+          })
+        }
+
+        return {
+          id: challenge.id,
+          title: challenge.title,
+          description: challenge.description,
+          type: challenge.type,
+          target: challenge.target,
+          startDate: challenge.startDate,
+          endDate: challenge.endDate,
+          isPublic: challenge.isPublic,
+          creator: challenge.creator,
+          participantCount: challenge._count.participants,
+          userProgress,
+          isJoined: !!userParticipant,
+          createdAt: challenge.createdAt,
+        }
+      })
+    )
 
     return NextResponse.json(challengesWithProgress)
   } catch (error) {

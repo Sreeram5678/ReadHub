@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,25 +35,40 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
   const [open, setOpen] = useState(false)
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(false)
+  const [booksLoading, setBooksLoading] = useState(false)
   const [formData, setFormData] = useState({
     quoteText: "",
     bookId: "",
     pageNumber: "",
   })
 
-  useEffect(() => {
-    fetchBooks()
-  }, [])
-
   const fetchBooks = async () => {
+    if (books.length > 0) return
+    setBooksLoading(true)
     try {
       const response = await fetch("/api/books")
       if (response.ok) {
         const data = await response.json()
-        setBooks(data)
+        setBooks(Array.isArray(data) ? data : [])
       }
     } catch (error) {
       console.error("Failed to fetch books:", error)
+      setBooks([])
+    } finally {
+      setBooksLoading(false)
+    }
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (newOpen) {
+      fetchBooks()
+    } else {
+      setFormData({
+        quoteText: "",
+        bookId: "",
+        pageNumber: "",
+      })
     }
   }
 
@@ -77,12 +92,12 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
         throw new Error(error.error || "Failed to add quote")
       }
 
+      setOpen(false)
       setFormData({
         quoteText: "",
         bookId: "",
         pageNumber: "",
       })
-      setOpen(false)
       onQuoteAdded()
     } catch (error) {
       console.error("Error adding quote:", error)
@@ -94,9 +109,9 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        <Button variant="ghost" size="sm">
           Add Quote
         </Button>
       </DialogTrigger>
@@ -130,11 +145,15 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">None</SelectItem>
-                {books.map((book) => (
-                  <SelectItem key={book.id} value={book.id}>
-                    {book.title} by {book.author}
-                  </SelectItem>
-                ))}
+                {booksLoading ? (
+                  <SelectItem value="" disabled>Loading books...</SelectItem>
+                ) : (
+                  books.map((book) => (
+                    <SelectItem key={book.id} value={book.id}>
+                      {book.title} by {book.author}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

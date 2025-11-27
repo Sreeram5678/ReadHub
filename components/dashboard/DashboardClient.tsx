@@ -8,7 +8,6 @@ import { ReadingGoals } from "./ReadingGoals"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { DailyQuote } from "@/components/reading/DailyQuote"
 import { QuickReadingLog } from "@/components/reading/QuickReadingLog"
-import { ReadingSpeedTest } from "@/components/reading/ReadingSpeedTest"
 import { ReadingStreakHeatmap } from "./ReadingStreakHeatmap"
 import { AchievementsList } from "@/components/achievements/AchievementsList"
 import { QuickStatsWidget } from "./QuickStatsWidget"
@@ -192,7 +191,7 @@ export function DashboardClient({
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Goals & Insights</h2>
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start">
+        <div className="grid gap-6 lg:grid-cols-2 items-start">
           <ReadingGoals
             goals={readingGoals}
             currentProgress={{
@@ -202,10 +201,7 @@ export function DashboardClient({
             }}
             onGoalAdded={refreshData}
           />
-          <div className="space-y-6">
-            <DailyQuote />
-            <ReadingSpeedTest />
-          </div>
+          <DailyQuote />
         </div>
       </section>
 
