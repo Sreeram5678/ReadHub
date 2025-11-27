@@ -6,7 +6,7 @@ import { getUserTimezone } from "@/lib/user-timezone"
 
 export async function GET(
   request: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const session = await auth()
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const targetUserId = params.userId
+    const { userId: targetUserId } = await params
     const currentUserId = session.user.id
 
     // Check if user exists
