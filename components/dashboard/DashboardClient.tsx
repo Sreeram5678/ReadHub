@@ -129,84 +129,99 @@ export function DashboardClient({
         completionPercentage={completionPercentage}
       />
 
-      <section className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
-        <Card className="h-full">
-          <ReadingTrendsChartLazy trends={readingTrends} />
-        </Card>
-        <div className="space-y-6">
-          <div className="card-surface rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted">Deep session</p>
-                <p className="serif-heading text-2xl text-[color:var(--text)]">Reading Timer</p>
+      <section className="space-y-6">
+        <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
+        <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+          <Card className="h-full">
+            <ReadingTrendsChartLazy trends={readingTrends} />
+          </Card>
+          <div className="space-y-6">
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="serif-heading text-xl font-semibold text-[color:var(--text)]">Reading Timer</h3>
+                  <p className="text-sm text-muted mt-1">Track your reading sessions</p>
+                </div>
               </div>
-              <LogReadingForm books={books} onLogAdded={refreshData} />
-            </div>
-            <div className="mt-4 rounded-[1.25rem] border border-card-border/70 p-4">
               <ReadingSessionTimer books={books} />
-            </div>
+            </Card>
+            <QuickReadingLog books={books} onLogAdded={refreshData} />
           </div>
-          <QuickReadingLog books={books} onLogAdded={refreshData} />
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <StatCard
-          label="Library"
-          value={`${totalBooks} books`}
-          description={`${completedBooks} completed`}
-          icon={<BookOpen className="h-4 w-4 text-[color:var(--accent)]" />}
-        />
-        <StatCard
-          label="Streak"
-          value={`${readingStreak} days`}
-          description="Consecutive days logged"
-          icon={<Flame className="h-4 w-4 text-[color:var(--accent)]" />}
-        />
-        <StatCard
-          label="Today"
-          value={`${todayPages} pages`}
-          description="Pages logged today"
-          icon={<BookOpenCheck className="h-4 w-4 text-[color:var(--accent)]" />}
-        />
-        <StatCard
-          label="Weekly"
-          value={`${weeklyPages} pages`}
-          description={`${daysReadThisWeek} active days`}
-          icon={<Calendar className="h-4 w-4 text-[color:var(--accent)]" />}
-        />
-        <StatCard
-          label="Monthly"
-          value={`${monthlyPages} pages`}
-          description={`${daysReadThisMonth} reading days`}
-          icon={<Target className="h-4 w-4 text-[color:var(--accent)]" />}
-        />
-        <div className="xl:col-span-1 md:col-span-2">
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Quick Stats</h2>
+          <LogReadingForm books={books} onLogAdded={refreshData} />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <StatCard
+            label="Library"
+            value={`${totalBooks} books`}
+            description={`${completedBooks} completed`}
+            icon={<BookOpen className="h-4 w-4 text-[color:var(--accent)]" />}
+          />
+          <StatCard
+            label="Streak"
+            value={`${readingStreak} days`}
+            description="Consecutive days logged"
+            icon={<Flame className="h-4 w-4 text-[color:var(--accent)]" />}
+          />
+          <StatCard
+            label="Today"
+            value={`${todayPages} pages`}
+            description="Pages logged today"
+            icon={<BookOpenCheck className="h-4 w-4 text-[color:var(--accent)]" />}
+          />
+          <StatCard
+            label="Weekly"
+            value={`${weeklyPages} pages`}
+            description={`${daysReadThisWeek} active days`}
+            icon={<Calendar className="h-4 w-4 text-[color:var(--accent)]" />}
+          />
+          <StatCard
+            label="Monthly"
+            value={`${monthlyPages} pages`}
+            description={`${daysReadThisMonth} reading days`}
+            icon={<Target className="h-4 w-4 text-[color:var(--accent)]" />}
+          />
+        </div>
+        <div className="max-w-md">
           <QuickStatsWidget />
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <ReadingGoals
-          goals={readingGoals}
-          currentProgress={{
-            daily: todayPages,
-            weekly: weeklyPages,
-            monthly: monthlyPages,
-          }}
-          onGoalAdded={refreshData}
-        />
-        <div className="grid gap-6">
-          <DailyQuote />
-          <ReadingSpeedTest />
+      <section className="space-y-6">
+        <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Goals & Insights</h2>
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <ReadingGoals
+            goals={readingGoals}
+            currentProgress={{
+              daily: todayPages,
+              weekly: weeklyPages,
+              monthly: monthlyPages,
+            }}
+            onGoalAdded={refreshData}
+          />
+          <div className="space-y-6">
+            <DailyQuote />
+            <ReadingSpeedTest />
+          </div>
         </div>
       </section>
 
-      <ReadingStreakHeatmap />
+      <section className="space-y-6">
+        <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Activity Overview</h2>
+        <ReadingStreakHeatmap />
+      </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <AchievementsList />
-        <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
+      <section className="space-y-6">
+        <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Recent Activity & Achievements</h2>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AchievementsList />
+          <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
+        </div>
       </section>
     </div>
   )
