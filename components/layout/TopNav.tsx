@@ -12,9 +12,13 @@ import { signOutAction } from "@/app/actions/auth"
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/books", label: "My Books" },
+  { href: "/tbr", label: "TBR" },
+  { href: "/series", label: "Series" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/friends", label: "Friends" },
   { href: "/challenges", label: "Challenges" },
+  { href: "/reminders", label: "Reminders" },
+  { href: "/groups", label: "Groups" },
 ]
 
 interface TopNavProps {
@@ -45,7 +49,7 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
           >
             ReadHub
           </Link>
-          <nav className="hidden items-center gap-4 md:flex">
+          <nav className="hidden items-center gap-3 overflow-x-auto scrollbar-hide md:flex lg:gap-4">
             {NAV_LINKS.map((link) => {
               const active =
                 pathname === link.href ||
@@ -55,7 +59,7 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "group flex flex-col items-start text-sm font-medium text-muted transition-colors",
+                    "group flex flex-col items-start whitespace-nowrap text-sm font-medium text-muted transition-colors",
                     active
                       ? "text-[color:var(--text)]"
                       : "hover:text-[color:var(--text)]"

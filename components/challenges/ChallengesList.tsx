@@ -327,17 +327,19 @@ export function ChallengesList() {
           </Card>
         ) : (
           challenges.map((challenge) => (
-            <Card key={challenge.id}>
-              <CardHeader>
-                <CardTitle className="flex items-start justify-between">
-                  <span>{challenge.title}</span>
+            <Card key={challenge.id} className="flex flex-col">
+              <CardHeader className="flex-shrink-0">
+                <CardTitle className="flex items-start justify-between gap-2 mb-1">
+                  <span className="flex-1">{challenge.title}</span>
                   {challenge.isPublic && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Public</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded whitespace-nowrap flex-shrink-0">Public</span>
                   )}
                 </CardTitle>
-                {challenge.description && (
-                  <CardDescription>{challenge.description}</CardDescription>
-                )}
+                <div className="min-h-[1.25rem]">
+                  {challenge.description && (
+                    <CardDescription className="mt-0">{challenge.description}</CardDescription>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
