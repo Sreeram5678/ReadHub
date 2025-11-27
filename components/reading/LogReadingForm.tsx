@@ -40,11 +40,12 @@ export function LogReadingForm({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [bookPageOverrides, setBookPageOverrides] = useState<Record<string, number>>({})
+  const [userTimezone, setUserTimezone] = useState<string>("Asia/Kolkata")
   const [formData, setFormData] = useState({
     bookId: "",
     startPage: "",
     endPage: "",
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
   })
 
   const getStartPageForBook = useCallback(
@@ -61,6 +62,22 @@ export function LogReadingForm({
     },
     [bookPageOverrides]
   )
+
+  useEffect(() => {
+    // Fetch user timezone
+    fetch("/api/profile/timezone")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.timezone) {
+          setUserTimezone(data.timezone)
+          const today = new Date().toLocaleDateString("en-CA", { timeZone: data.timezone })
+          setFormData(prev => ({ ...prev, date: today }))
+        }
+      })
+      .catch(() => {
+        // Use default timezone already set
+      })
+  }, [])
 
   useEffect(() => {
     if (books.length > 0) {
@@ -175,7 +192,7 @@ export function LogReadingForm({
         bookId: book.id,
         startPage: Math.min(lastReadPage + 1, book.totalPages).toString(),
         endPage: "",
-        date: new Date().toISOString().split("T")[0],
+        date: new Date().toLocaleDateString("en-CA", { timeZone: userTimezone }),
       })
       setOpen(false)
       onLogAdded()

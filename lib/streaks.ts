@@ -1,39 +1,42 @@
-export function calculateReadingStreak(logs: { date: Date }[]): number {
+import { getTodayInTimezone, formatDateInTimezone } from "./timezone"
+
+export function calculateReadingStreak(logs: { date: Date }[], timezone: string): number {
   if (logs.length === 0) return 0
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = getTodayInTimezone(timezone)
 
-  const uniqueDates = new Set(
-    logs.map((log) => {
-      const date = new Date(log.date)
-      date.setHours(0, 0, 0, 0)
-      return date.getTime()
-    })
+  // Get unique dates in the user's timezone
+  const uniqueDateStrings = new Set(
+    logs.map((log) => formatDateInTimezone(log.date, timezone))
   )
 
-  const sortedDates = Array.from(uniqueDates).sort((a, b) => b - a)
+  const sortedDateStrings = Array.from(uniqueDateStrings).sort((a, b) => {
+    return new Date(b).getTime() - new Date(a).getTime()
+  })
 
-  if (sortedDates.length === 0) return 0
+  if (sortedDateStrings.length === 0) return 0
 
+  const todayStr = formatDateInTimezone(today, timezone)
   let streak = 0
   let expectedDate = new Date(today)
 
-  for (const dateTime of sortedDates) {
-    const logDate = new Date(dateTime)
-    logDate.setHours(0, 0, 0, 0)
-
+  for (const dateStr of sortedDateStrings) {
+    // Parse the date string as if it's in the user's timezone
+    const [year, month, day] = dateStr.split("-").map(Number)
+    const logDate = new Date(Date.UTC(year, month - 1, day))
+    
+    const expectedStr = formatDateInTimezone(expectedDate, timezone)
     const diffDays = Math.floor(
       (expectedDate.getTime() - logDate.getTime()) / (1000 * 60 * 60 * 24)
     )
 
-    if (diffDays === 0) {
+    if (expectedStr === dateStr) {
       streak++
-      expectedDate.setDate(expectedDate.getDate() - 1)
+      expectedDate = new Date(expectedDate.getTime() - 24 * 60 * 60 * 1000)
     } else if (diffDays === 1 && streak === 0) {
+      // Yesterday
       streak = 1
-      expectedDate = new Date(logDate)
-      expectedDate.setDate(expectedDate.getDate() - 1)
+      expectedDate = new Date(logDate.getTime() - 24 * 60 * 60 * 1000)
     } else {
       break
     }
@@ -44,26 +47,21 @@ export function calculateReadingStreak(logs: { date: Date }[]): number {
 
 export function getReadingDaysInPeriod(
   logs: { date: Date }[],
-  days: number
+  days: number,
+  timezone: string
 ): number {
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - days)
-  cutoff.setHours(0, 0, 0, 0)
+  const today = getTodayInTimezone(timezone)
+  const cutoff = new Date(today.getTime() - days * 24 * 60 * 60 * 1000)
 
-  const uniqueDates = new Set(
+  // Get unique dates in the user's timezone within the period
+  const uniqueDateStrings = new Set(
     logs
       .filter((log) => {
-        const logDate = new Date(log.date)
-        logDate.setHours(0, 0, 0, 0)
-        return logDate > cutoff
+        return log.date >= cutoff
       })
-      .map((log) => {
-        const date = new Date(log.date)
-        date.setHours(0, 0, 0, 0)
-        return date.getTime()
-      })
+      .map((log) => formatDateInTimezone(log.date, timezone))
   )
 
-  return uniqueDates.size
+  return uniqueDateStrings.size
 }
 

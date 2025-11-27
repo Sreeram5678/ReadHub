@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOutAction } from "@/app/actions/auth"
+import { cn } from "@/lib/utils"
 
 interface MobileNavProps {
   userName: string
@@ -12,6 +14,11 @@ interface MobileNavProps {
 
 export function MobileNav({ userName }: MobileNavProps) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+
+  const isActive = (href: string) => {
+    return pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
+  }
 
   return (
     <>
@@ -21,14 +28,19 @@ export function MobileNav({ userName }: MobileNavProps) {
         className="md:hidden"
         onClick={() => setOpen(!open)}
       >
-        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {open ? <X className="h-5 w-5 transition-transform" /> : <Menu className="h-5 w-5 transition-transform" />}
       </Button>
       {open && (
-        <div className="absolute top-16 left-0 right-0 bg-background border-b z-50 md:hidden">
-          <div className="container mx-auto px-4 py-4 space-y-3">
+        <div className="absolute top-16 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b z-50 md:hidden animate-in slide-in-from-top-2 duration-200">
+          <div className="container mx-auto px-4 py-4 space-y-1">
             <Link
               href="/dashboard"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/dashboard")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -36,7 +48,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/books"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/books")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -44,7 +61,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/tbr"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/tbr")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -52,7 +74,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/series"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/series")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -60,7 +87,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/leaderboard"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/leaderboard")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -68,7 +100,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/friends"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/friends")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -76,7 +113,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/challenges"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/challenges")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -84,7 +126,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/reminders"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/reminders")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >
@@ -92,7 +139,12 @@ export function MobileNav({ userName }: MobileNavProps) {
             </Link>
             <Link
               href="/groups"
-              className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              className={cn(
+                "block text-sm font-medium transition-all duration-200 py-2 px-3 rounded-md",
+                isActive("/groups")
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
               onClick={() => setOpen(false)}
               prefetch={true}
             >

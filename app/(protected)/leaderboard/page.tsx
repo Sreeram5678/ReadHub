@@ -3,23 +3,25 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { LeaderboardPageClient } from "@/components/leaderboard/LeaderboardPageClient"
 import { Prisma } from "@prisma/client"
+import { getUserTimezone } from "@/lib/user-timezone"
+import { getTodayInTimezone } from "@/lib/timezone"
 
-async function getLeaderboard(period: string, userId: string) {
+async function getLeaderboard(period: string, userId: string, userTimezone: string) {
   let startDate: Date | undefined
   const now = new Date()
 
   switch (period) {
     case "today":
-      startDate = new Date(now)
-      startDate.setHours(0, 0, 0, 0)
+      startDate = getTodayInTimezone(userTimezone)
       break
     case "week":
-      startDate = new Date(now)
-      startDate.setDate(now.getDate() - 7)
+      const today = getTodayInTimezone(userTimezone)
+      startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
       break
     case "month":
-      startDate = new Date(now)
-      startDate.setMonth(now.getMonth() - 1)
+      const todayMonth = getTodayInTimezone(userTimezone)
+      startDate = new Date(todayMonth)
+      startDate.setMonth(startDate.getMonth() - 1)
       break
     default:
       startDate = undefined
@@ -104,7 +106,8 @@ export default async function LeaderboardPage({
 
   const params = await searchParams
   const period = params.period || "all-time"
-  const leaderboard = await getLeaderboard(period, session.user.id)
+  const userTimezone = await getUserTimezone(session.user.id)
+  const leaderboard = await getLeaderboard(period, session.user.id, userTimezone)
 
   return (
     <LeaderboardPageClient

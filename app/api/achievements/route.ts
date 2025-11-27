@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { checkAndAwardStreakAchievements } from "@/lib/achievements"
 import { calculateReadingStreak } from "@/lib/streaks"
+import { getUserTimezone } from "@/lib/user-timezone"
 
 export async function GET() {
   try {
@@ -51,7 +52,8 @@ export async function POST() {
       select: { date: true },
     })
 
-    const currentStreak = calculateReadingStreak(logs)
+    const userTimezone = await getUserTimezone(session.user.id)
+    const currentStreak = calculateReadingStreak(logs, userTimezone)
 
     // Check and award streak achievements
     const newAchievements = await checkAndAwardStreakAchievements(

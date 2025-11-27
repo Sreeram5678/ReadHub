@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { getUserTimezone } from "@/lib/user-timezone"
+import { parseDateInTimezone } from "@/lib/timezone"
 
 export async function PUT(
   request: Request,
@@ -40,8 +42,8 @@ export async function PUT(
     const newPagesRead = parseInt(pagesRead)
     const pagesDifference = newPagesRead - oldPagesRead
 
-    const logDate = date ? new Date(date) : existingLog.date
-    logDate.setHours(0, 0, 0, 0)
+    const userTimezone = await getUserTimezone(session.user.id)
+    const logDate = date ? parseDateInTimezone(date, userTimezone) : existingLog.date
 
     const updatedLog = await db.readingLog.update({
       where: { id: logId },

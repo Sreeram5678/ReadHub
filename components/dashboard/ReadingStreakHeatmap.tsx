@@ -142,7 +142,7 @@ export function ReadingStreakHeatmap() {
             {gridData.map((item, index) => (
               <div
                 key={index}
-                className={`w-3 h-3 rounded-sm ${getIntensity(item.pages)} transition-colors cursor-pointer hover:ring-2 hover:ring-primary`}
+                className={`w-3 h-3 rounded-sm ${getIntensity(item.pages)} transition-all duration-200 cursor-pointer hover:ring-2 hover:ring-primary hover:scale-125 hover:z-10 relative`}
                 title={`${formatDate(item.date)}: ${item.pages} pages`}
               />
             ))}

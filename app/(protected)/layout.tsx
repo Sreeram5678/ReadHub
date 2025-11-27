@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "@/components/ui/mobile-nav"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
+import { NavLink } from "@/components/ui/nav-link"
 
 export default async function ProtectedLayout({
   children,
@@ -18,76 +19,22 @@ export default async function ProtectedLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b relative">
+      <nav className="border-b relative bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4 md:gap-6">
-            <Link href="/dashboard" className="text-lg md:text-xl font-bold">
+            <Link href="/dashboard" className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               ReadHub
             </Link>
-            <div className="hidden md:flex gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/books"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              My Books
-            </Link>
-            <Link
-              href="/tbr"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              TBR
-            </Link>
-            <Link
-              href="/series"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Series
-            </Link>
-            <Link
-              href="/leaderboard"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Leaderboard
-            </Link>
-            <Link
-              href="/friends"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Friends
-            </Link>
-            <Link
-              href="/challenges"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Challenges
-            </Link>
-            <Link
-              href="/reminders"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Reminders
-            </Link>
-            <Link
-              href="/groups"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              prefetch={true}
-            >
-              Groups
-            </Link>
+            <div className="hidden md:flex gap-1">
+            <NavLink href="/dashboard">Dashboard</NavLink>
+            <NavLink href="/books">My Books</NavLink>
+            <NavLink href="/tbr">TBR</NavLink>
+            <NavLink href="/series">Series</NavLink>
+            <NavLink href="/leaderboard">Leaderboard</NavLink>
+            <NavLink href="/friends">Friends</NavLink>
+            <NavLink href="/challenges">Challenges</NavLink>
+            <NavLink href="/reminders">Reminders</NavLink>
+            <NavLink href="/groups">Groups</NavLink>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">

@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
 import { ReadingStreakWidget } from "./widgets/ReadingStreakWidget"
 import { StatsWidget } from "./widgets/StatsWidget"
-import { WeeklyMonthlyWidget } from "./widgets/WeeklyMonthlyWidget"
+import { ThisWeekWidget } from "./widgets/ThisWeekWidget"
+import { ThisMonthWidget } from "./widgets/ThisMonthWidget"
 import { ReadingGoals } from "./ReadingGoals"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { DailyQuote } from "@/components/reading/DailyQuote"
@@ -142,17 +143,17 @@ export function DashboardClient({
         todayPages={todayPages}
       />
 
-      {/* Row 2: streak + weekly/monthly + goals */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+      {/* Row 2: streak + weekly + monthly + goals */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <ReadingStreakWidget readingStreak={readingStreak} />
-        <div className="md:col-span-1">
-          <WeeklyMonthlyWidget
-            weeklyPages={weeklyPages}
-            monthlyPages={monthlyPages}
-            daysReadThisWeek={daysReadThisWeek}
-            daysReadThisMonth={daysReadThisMonth}
-          />
-        </div>
+        <ThisWeekWidget
+          weeklyPages={weeklyPages}
+          daysReadThisWeek={daysReadThisWeek}
+        />
+        <ThisMonthWidget
+          monthlyPages={monthlyPages}
+          daysReadThisMonth={daysReadThisMonth}
+        />
         <ReadingGoals
           goals={readingGoals}
           currentProgress={{
