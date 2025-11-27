@@ -5,7 +5,7 @@ import { PublicProfileClient } from "@/components/profile/PublicProfileClient"
 export default async function PublicProfilePage({
   params,
 }: {
-  params: { userId: string }
+  params: Promise<{ userId: string }>
 }) {
   const session = await auth()
 
@@ -13,11 +13,13 @@ export default async function PublicProfilePage({
     redirect("/login")
   }
 
+  const { userId } = await params
+
   // If viewing own profile, redirect to the main profile page
-  if (params.userId === session.user.id) {
+  if (userId === session.user.id) {
     redirect("/profile")
   }
 
-  return <PublicProfileClient userId={params.userId} />
+  return <PublicProfileClient userId={userId} />
 }
 
