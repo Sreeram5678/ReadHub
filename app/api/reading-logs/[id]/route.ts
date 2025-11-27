@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { parseDateInTimezone } from "@/lib/timezone"
+import { updateChallengeProgress } from "@/lib/challenges"
 
 export async function PUT(
   request: Request,
@@ -65,6 +66,8 @@ export async function PUT(
         currentPage: newCurrentPage,
       },
     })
+
+    await updateChallengeProgress(session.user.id)
 
     return NextResponse.json(updatedLog)
   } catch (error) {

@@ -4,6 +4,7 @@ export function calculateReadingStreak(logs: { date: Date }[], timezone: string)
   if (logs.length === 0) return 0
 
   const today = getTodayInTimezone(timezone)
+  const todayStr = formatDateInTimezone(today, timezone)
 
   // Get unique dates in the user's timezone
   const uniqueDateStrings = new Set(
@@ -16,28 +17,34 @@ export function calculateReadingStreak(logs: { date: Date }[], timezone: string)
 
   if (sortedDateStrings.length === 0) return 0
 
-  const todayStr = formatDateInTimezone(today, timezone)
+  // Determine the starting date for streak calculation
+  // If today has a log, start from today; otherwise, start from yesterday
+  // (Today not having a log doesn't break the streak - the day isn't over yet)
+  const hasTodayLog = uniqueDateStrings.has(todayStr)
+  let expectedDate: Date
+  
+  if (hasTodayLog) {
+    // Start from today
+    expectedDate = new Date(today)
+  } else {
+    // Today doesn't have a log yet, so start from yesterday
+    // The streak continues as long as yesterday (or earlier consecutive days) have logs
+    expectedDate = new Date(today.getTime() - 24 * 60 * 60 * 1000) // yesterday
+  }
+
   let streak = 0
-  let expectedDate = new Date(today)
+  const dateSet = new Set(sortedDateStrings)
 
-  for (const dateStr of sortedDateStrings) {
-    // Parse the date string as if it's in the user's timezone
-    const [year, month, day] = dateStr.split("-").map(Number)
-    const logDate = new Date(Date.UTC(year, month - 1, day))
-    
+  // Count consecutive days going backwards
+  while (true) {
     const expectedStr = formatDateInTimezone(expectedDate, timezone)
-    const diffDays = Math.floor(
-      (expectedDate.getTime() - logDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-
-    if (expectedStr === dateStr) {
+    
+    if (dateSet.has(expectedStr)) {
+      // Found the expected date, increment streak and move to previous day
       streak++
       expectedDate = new Date(expectedDate.getTime() - 24 * 60 * 60 * 1000)
-    } else if (diffDays === 1 && streak === 0) {
-      // Yesterday
-      streak = 1
-      expectedDate = new Date(logDate.getTime() - 24 * 60 * 60 * 1000)
     } else {
+      // Expected date is not in the logs - streak is broken
       break
     }
   }
