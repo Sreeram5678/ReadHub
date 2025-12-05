@@ -1,7 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
-
 interface DashboardHeroProps {
   userName: string
   totalPagesRead: number
@@ -18,12 +16,7 @@ export function DashboardHero({
   completionPercentage,
 }: DashboardHeroProps) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-[2.5rem] border border-card-border/60 bg-gradient-to-br from-[color:var(--surface)] via-[color:var(--surface)]/80 to-[#e8f2ff] px-8 py-10 shadow-[var(--card-shadow)] dark:to-[#121722]"
-    >
+    <section className="relative overflow-hidden rounded-[2.5rem] border border-card-border/60 bg-gradient-to-br from-[color:var(--surface)] via-[color:var(--surface)]/80 to-[#e8f2ff] px-8 py-10 shadow-[var(--card-shadow)] transition-transform duration-300 hover:-translate-y-0.5 dark:to-[#121722]">
       <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-4">
           <p className="text-xs uppercase tracking-[0.3em] text-muted">Welcome back</p>
@@ -52,7 +45,7 @@ export function DashboardHero({
         <div className="absolute -top-10 right-0 h-48 w-48 rounded-full bg-[color:var(--accent)]/20" />
         <div className="absolute bottom-0 left-10 h-32 w-32 rounded-full bg-[#ffb86c]/30" />
       </div>
-    </motion.section>
+    </section>
   )
 }
 

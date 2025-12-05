@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Share2, Copy, Check } from "lucide-react"
 
@@ -49,9 +48,9 @@ export function QuickStatsWidget() {
 
   if (loading) {
     return (
-      <motion.div className="card-surface min-h-[220px] rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]">
+      <div className="card-surface min-h-[220px] rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]">
         <p className="text-sm text-muted">Loading stats...</p>
-      </motion.div>
+      </div>
     )
   }
 
@@ -60,11 +59,7 @@ export function QuickStatsWidget() {
   }
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="card-surface min-h-[240px] rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]"
-    >
+    <div className="card-surface min-h-[240px] rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)] transition-transform duration-200 hover:-translate-y-1">
       <div className="mb-4 flex items-center gap-3">
         <Share2 className="h-5 w-5 text-[color:var(--accent)]" />
         <div>
@@ -89,7 +84,7 @@ export function QuickStatsWidget() {
           </>
         )}
       </Button>
-    </motion.div>
+    </div>
   )
 }
 

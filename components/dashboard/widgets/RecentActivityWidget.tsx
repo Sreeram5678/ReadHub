@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Pencil } from "lucide-react"
 import { EditReadingLogForm } from "@/components/reading/EditReadingLogForm"
@@ -25,11 +24,7 @@ export function RecentActivityWidget({ recentLogs, onLogUpdated }: RecentActivit
   const editingLog = editingLogId ? recentLogs.find((log) => log.id === editingLogId) : null
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="card-surface h-full rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]"
-    >
+    <div className="card-surface h-full rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)] transition-transform duration-200 hover:-translate-y-1">
       <div className="mb-4">
         <p className="text-xs uppercase tracking-[0.3em] text-muted">Recent Activity</p>
         <p className="serif-heading text-2xl text-[color:var(--text)]">Latest reading logs</p>
@@ -77,7 +72,7 @@ export function RecentActivityWidget({ recentLogs, onLogUpdated }: RecentActivit
           }}
         />
       )}
-    </motion.div>
+    </div>
   )
 }
 

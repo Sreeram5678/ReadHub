@@ -1,24 +1,22 @@
 "use client"
 
-import { motion } from "framer-motion"
+import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 interface StatCardProps {
   label: string
   value: string | number
   description?: string
-  icon?: React.ReactNode
+  icon?: ReactNode
   trend?: string
   className?: string
 }
 
 export function StatCard({ label, value, description, icon, trend, className }: StatCardProps) {
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
+    <div
       className={cn(
-        "card-surface flex h-full flex-col gap-3 rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)]",
+        "card-surface flex h-full flex-col gap-3 rounded-[1.5rem] border border-card-border/70 bg-[color:var(--surface)] p-6 shadow-[var(--card-shadow)] transition-transform duration-200 hover:-translate-y-1",
         className
       )}
     >
@@ -29,7 +27,7 @@ export function StatCard({ label, value, description, icon, trend, className }: 
       <p className="serif-heading text-3xl text-[color:var(--text)]">{value}</p>
       {description && <p className="text-sm text-muted">{description}</p>}
       {trend && <p className="text-xs text-[color:var(--accent)]">{trend}</p>}
-    </motion.div>
+    </div>
   )
 }
 

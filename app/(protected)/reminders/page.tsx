@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { RemindersList } from "@/components/reminders/RemindersList"
 
 export default async function RemindersPage() {
   const session = await auth()
@@ -9,6 +8,6 @@ export default async function RemindersPage() {
     redirect("/login")
   }
 
-  return <RemindersList />
+  redirect("/dashboard")
 }
 
