@@ -8,6 +8,10 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
+const now = Date.now()
+const ninetyDaysAgo = new Date(now - 90 * 24 * 60 * 60 * 1000)
+const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
+
 const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
     where: { 
@@ -47,7 +51,6 @@ export default async function DashboardPage() {
     readingGoals,
     booksForForm,
     dashboardPreferences,
-    currentlyReadingBooks,
   ] = await Promise.all([
     // Fetch books once and calculate counts in memory (faster than 2 separate count queries)
     db.book.findMany({
@@ -77,7 +80,7 @@ export default async function DashboardPage() {
       where: {
         userId,
         date: {
-          gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+          gte: ninetyDaysAgo,
         },
       },
       select: { date: true },
@@ -93,7 +96,7 @@ export default async function DashboardPage() {
       where: {
         userId,
         date: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          gte: thirtyDaysAgo,
         },
       },
       select: {
@@ -113,19 +116,6 @@ export default async function DashboardPage() {
     (db as any).dashboardPreference.findUnique({
       where: { userId },
       select: { layoutJson: true },
-    }),
-    db.book.findMany({
-      where: { 
-        userId,
-        status: "reading",
-      },
-      include: {
-        readingLogs: {
-          select: { pagesRead: true },
-        },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 1,
     }),
   ])
 

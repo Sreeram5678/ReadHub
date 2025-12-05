@@ -8,6 +8,9 @@ import Link from "next/link"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 
+export const dynamic = "force-static"
+export const revalidate = 3600
+
 export default async function SignupPage({
   searchParams,
 }: {

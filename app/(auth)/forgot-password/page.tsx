@@ -6,6 +6,9 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 
+export const dynamic = "force-static"
+export const revalidate = 3600
+
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
@@ -19,7 +22,7 @@ export default async function ForgotPasswordPage({
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we&apos;ll send you a link to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

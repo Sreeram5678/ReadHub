@@ -8,10 +8,7 @@ import { ReadingGoals } from "./ReadingGoals"
 import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { DailyQuote } from "@/components/reading/DailyQuote"
 import { QuickReadingLog } from "@/components/reading/QuickReadingLog"
-import { ReadingStreakHeatmap } from "./ReadingStreakHeatmap"
-import { AchievementsList } from "@/components/achievements/AchievementsList"
 import { QuickStatsWidget } from "./QuickStatsWidget"
-import { RecentActivityWidget } from "./widgets/RecentActivityWidget"
 import { DashboardHero } from "./DashboardHero"
 import { StatCard } from "@/components/ui/StatCard"
 import { BookOpen, BookOpenCheck, Calendar, Flame, Target } from "lucide-react"
@@ -24,6 +21,34 @@ const ReadingTrendsChartLazy = dynamic(
       <Card>
         <div className="h-[300px] flex items-center justify-center">
           <p className="text-muted-foreground">Loading chart...</p>
+        </div>
+      </Card>
+    ),
+    ssr: false,
+  }
+)
+
+const ReadingStreakHeatmapLazy = dynamic(
+  () => import("./ReadingStreakHeatmap").then((mod) => ({ default: mod.ReadingStreakHeatmap })),
+  {
+    loading: () => (
+      <Card>
+        <div className="p-6">
+          <p className="text-sm text-muted-foreground">Loading heatmap...</p>
+        </div>
+      </Card>
+    ),
+    ssr: false,
+  }
+)
+
+const AchievementsListLazy = dynamic(
+  () => import("@/components/achievements/AchievementsList").then((mod) => ({ default: mod.AchievementsList })),
+  {
+    loading: () => (
+      <Card>
+        <div className="p-6">
+          <p className="text-sm text-muted-foreground">Loading achievements...</p>
         </div>
       </Card>
     ),
@@ -207,13 +232,13 @@ export function DashboardClient({
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Activity Overview</h2>
-        <ReadingStreakHeatmap />
+        <ReadingStreakHeatmapLazy />
       </section>
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Recent Activity & Achievements</h2>
         <div className="grid gap-6 lg:grid-cols-2">
-          <AchievementsList />
+          <AchievementsListLazy />
           <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
         </div>
       </section>
