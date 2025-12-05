@@ -7,13 +7,15 @@ export default async function PublicProfilePage({
 }: {
   params: Promise<{ userId: string }>
 }) {
+  const resolvedParams = await params
   const session = await auth()
 
   if (!session?.user?.id) {
-    redirect("/login")
+    const callbackUrl = `/profile/${resolvedParams.userId}`
+    redirect(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
   }
 
-  const { userId } = await params
+  const { userId } = resolvedParams
 
   // If viewing own profile, redirect to the main profile page
   if (userId === session.user.id) {

@@ -12,9 +12,13 @@ export const revalidate = 3600
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>
+  searchParams: Promise<{ error?: string; success?: string; callbackUrl?: string }>
 }) {
   const params = await searchParams
+  const callbackUrl =
+    params.callbackUrl && params.callbackUrl.startsWith("/")
+      ? params.callbackUrl
+      : "/dashboard"
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -46,10 +50,10 @@ export default async function LoginPage({
                 await signIn("credentials", {
                   email,
                   password,
-                  redirectTo: "/dashboard",
+                  redirectTo: callbackUrl,
                 })
               } catch (error) {
-                redirect("/login?error=Invalid credentials")
+                redirect(`/login?error=Invalid credentials&callbackUrl=${encodeURIComponent(callbackUrl)}`)
               }
             }}
             className="space-y-4"
@@ -95,7 +99,7 @@ export default async function LoginPage({
           <form
             action={async () => {
               "use server"
-              await signIn("google", { redirectTo: "/dashboard" })
+              await signIn("google", { redirectTo: callbackUrl })
             }}
           >
             <Button type="submit" className="w-full" variant="outline">
