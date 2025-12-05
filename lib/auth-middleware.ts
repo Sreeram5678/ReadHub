@@ -4,7 +4,6 @@ import GitHub from "next-auth/providers/github"
 
 // Support both legacy NEXTAUTH_* and Auth.js v5 AUTH_* env names
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
-const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL
 const googleClientId = process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID
 const googleClientSecret =
   process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET
@@ -15,7 +14,6 @@ const githubClientSecret =
 // Auth config for middleware (Edge runtime compatible - no Prisma adapter)
 export const { auth } = NextAuth({
   secret: authSecret,
-  url: authUrl,
   providers: [
     Google({
       clientId: googleClientId,

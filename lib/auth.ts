@@ -7,7 +7,6 @@ import bcrypt from "bcryptjs"
 
 // Support both legacy NEXTAUTH_* and Auth.js v5 AUTH_* env names
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
-const authUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL
 const googleClientId = process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID
 const googleClientSecret =
   process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET
@@ -16,8 +15,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db) as any,
   trustHost: true,
   secret: authSecret,
-  // Provide URL for environments that rely on Auth.js AUTH_URL instead of NEXTAUTH_URL
-  url: authUrl,
   session: {
     strategy: "jwt",
   },
