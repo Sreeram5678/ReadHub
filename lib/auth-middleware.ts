@@ -43,6 +43,8 @@ export const { auth } = NextAuth({
     Google({
       clientId: googleClientId,
       clientSecret: googleClientSecret,
+      // Disable PKCE in middleware too
+      checks: ["state"],
     }),
     ...(githubClientId && githubClientSecret
       ? [

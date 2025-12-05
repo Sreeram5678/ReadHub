@@ -96,6 +96,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: googleClientId,
       clientSecret: googleClientSecret,
+      // Disable PKCE to avoid pkceCodeVerifier parse issues on some hosts
+      checks: ["state"],
       authorization: {
         params: {
           prompt: "select_account",
