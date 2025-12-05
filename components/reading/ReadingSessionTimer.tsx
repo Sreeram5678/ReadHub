@@ -31,7 +31,7 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [seconds, setSeconds] = useState(0)
-  const [selectedBookId, setSelectedBookId] = useState<string>("")
+  const [selectedBookId, setSelectedBookId] = useState<string | undefined>(undefined)
   const [pagesRead, setPagesRead] = useState("")
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(new Set(books.map(b => b.id)))
@@ -40,6 +40,18 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
   const startTimeRef = useRef<Date | null>(null)
 
   const availableBooks = books.filter(book => selectedBookIds.has(book.id))
+
+  // Ensure the select value is always a valid option or undefined
+  useEffect(() => {
+    if (availableBooks.length === 0) {
+      setSelectedBookId(undefined)
+      return
+    }
+    // If the current selection is missing, default to the first available book
+    if (!selectedBookId || !availableBooks.some((b) => b.id === selectedBookId)) {
+      setSelectedBookId(availableBooks[0].id)
+    }
+  }, [availableBooks, selectedBookId])
 
   useEffect(() => {
     if (isRunning && !isPaused) {
@@ -141,7 +153,7 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
     }
     setSelectedBookIds(newSelection)
     if (selectedBookId === bookId && !newSelection.has(bookId)) {
-      setSelectedBookId("")
+      setSelectedBookId(undefined)
     }
   }
 
@@ -205,7 +217,9 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
             </SelectTrigger>
             <SelectContent>
               {availableBooks.length === 0 ? (
-                <SelectItem value="" disabled>No books selected</SelectItem>
+                <SelectItem value="no-books" disabled>
+                  No books selected
+                </SelectItem>
               ) : (
                 availableBooks.map((book) => (
                 <SelectItem key={book.id} value={book.id}>

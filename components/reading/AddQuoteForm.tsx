@@ -38,7 +38,7 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
   const [booksLoading, setBooksLoading] = useState(false)
   const [formData, setFormData] = useState({
     quoteText: "",
-    bookId: "",
+    bookId: "none",
     pageNumber: "",
   })
 
@@ -66,7 +66,7 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
     } else {
       setFormData({
         quoteText: "",
-        bookId: "",
+        bookId: "none",
         pageNumber: "",
       })
     }
@@ -82,7 +82,7 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           quoteText: formData.quoteText,
-          bookId: formData.bookId || null,
+          bookId: formData.bookId === "none" ? null : formData.bookId,
           pageNumber: formData.pageNumber || null,
         }),
       })
@@ -95,7 +95,7 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
       setOpen(false)
       setFormData({
         quoteText: "",
-        bookId: "",
+        bookId: "none",
         pageNumber: "",
       })
       onQuoteAdded()
@@ -144,9 +144,11 @@ export function AddQuoteForm({ onQuoteAdded }: AddQuoteFormProps) {
                 <SelectValue placeholder="Select a book (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {booksLoading ? (
-                  <SelectItem value="" disabled>Loading books...</SelectItem>
+                  <SelectItem value="loading" disabled>
+                    Loading books...
+                  </SelectItem>
                 ) : (
                   books.map((book) => (
                     <SelectItem key={book.id} value={book.id}>

@@ -50,7 +50,7 @@ export function EditQuoteForm({
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     quoteText: quote.quoteText,
-    bookId: quote.bookId || "",
+    bookId: quote.bookId || "none",
     pageNumber: quote.pageNumber?.toString() || "",
   })
 
@@ -58,7 +58,7 @@ export function EditQuoteForm({
     if (open) {
       setFormData({
         quoteText: quote.quoteText,
-        bookId: quote.bookId || "",
+        bookId: quote.bookId || "none",
         pageNumber: quote.pageNumber?.toString() || "",
       })
       fetchBooks()
@@ -87,7 +87,7 @@ export function EditQuoteForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           quoteText: formData.quoteText,
-          bookId: formData.bookId || null,
+          bookId: formData.bookId === "none" ? null : formData.bookId,
           pageNumber: formData.pageNumber || null,
         }),
       })
@@ -167,7 +167,7 @@ export function EditQuoteForm({
                 <SelectValue placeholder="Select a book (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {books.map((book) => (
                   <SelectItem key={book.id} value={book.id}>
                     {book.title} by {book.author}
