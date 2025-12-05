@@ -6,6 +6,10 @@ import { Prisma } from "@prisma/client"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
+// This page reads session (uses headers/cookies), so force dynamic rendering
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 async function getLeaderboard(period: string, userId: string, userTimezone: string) {
   try {
     let startDate: Date | undefined
