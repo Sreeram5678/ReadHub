@@ -38,10 +38,21 @@ if (!googleClientId || !googleClientSecret) {
   )
 }
 
+// Log a safe summary so we can see what the runtime sees (no secrets)
+console.log("[auth-config]", {
+  hasSecret: !!authSecret,
+  hasGoogleId: !!googleClientId,
+  hasGoogleSecret: !!googleClientSecret,
+  authUrl: process.env.AUTH_URL,
+  nextauthUrl: process.env.NEXTAUTH_URL,
+  vercelUrl: process.env.VERCEL_URL,
+})
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db) as any,
   trustHost: true,
   secret: authSecret,
+  debug: true,
   session: {
     strategy: "jwt",
   },
