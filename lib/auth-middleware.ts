@@ -11,6 +11,31 @@ const githubClientId = process.env.AUTH_GITHUB_ID ?? process.env.GITHUB_CLIENT_I
 const githubClientSecret =
   process.env.AUTH_GITHUB_SECRET ?? process.env.GITHUB_CLIENT_SECRET
 
+// Derive NEXTAUTH_URL/AUTH_URL for middleware as well
+const derivedAuthUrl =
+  process.env.AUTH_URL ??
+  process.env.NEXTAUTH_URL ??
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : undefined)
+
+if (derivedAuthUrl) {
+  process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL ?? derivedAuthUrl
+  process.env.AUTH_URL = process.env.AUTH_URL ?? derivedAuthUrl
+}
+
+if (!authSecret) {
+  throw new Error(
+    "Missing AUTH_SECRET or NEXTAUTH_SECRET. Set it in your environment (Vercel project settings)."
+  )
+}
+
+if (!googleClientId || !googleClientSecret) {
+  throw new Error(
+    "Missing Google OAuth env vars. Set AUTH_GOOGLE_ID/SECRET or GOOGLE_CLIENT_ID/SECRET."
+  )
+}
+
 // Auth config for middleware (Edge runtime compatible - no Prisma adapter)
 export const { auth } = NextAuth({
   secret: authSecret,

@@ -11,6 +11,33 @@ const googleClientId = process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_I
 const googleClientSecret =
   process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET
 
+// Derive NEXTAUTH_URL/AUTH_URL (used by Auth.js) with a Vercel fallback
+const derivedAuthUrl =
+  process.env.AUTH_URL ??
+  process.env.NEXTAUTH_URL ??
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : undefined)
+
+// Make the URL visible to NextAuth at runtime if it was missing
+if (derivedAuthUrl) {
+  process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL ?? derivedAuthUrl
+  process.env.AUTH_URL = process.env.AUTH_URL ?? derivedAuthUrl
+}
+
+// Fail fast with clear messages instead of vague "Configuration" errors
+if (!authSecret) {
+  throw new Error(
+    "Missing AUTH_SECRET or NEXTAUTH_SECRET. Set it in your environment (Vercel project settings)."
+  )
+}
+
+if (!googleClientId || !googleClientSecret) {
+  throw new Error(
+    "Missing Google OAuth env vars. Set AUTH_GOOGLE_ID/SECRET or GOOGLE_CLIENT_ID/SECRET."
+  )
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db) as any,
   trustHost: true,
