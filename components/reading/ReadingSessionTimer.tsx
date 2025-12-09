@@ -36,8 +36,10 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(new Set(books.map(b => b.id)))
   const [showSettings, setShowSettings] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startTimeRef = useRef<Date | null>(null)
+  const tickingFromRef = useRef<number | null>(null) // when the current run started (ms)
+  const accumulatedSecondsRef = useRef<number>(0) // total seconds from previous runs/segments
 
   const availableBooks = books.filter(book => selectedBookIds.has(book.id))
 
@@ -55,9 +57,15 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
 
   useEffect(() => {
     if (isRunning && !isPaused) {
-      intervalRef.current = setInterval(() => {
-        setSeconds((prev) => prev + 1)
-      }, 1000)
+      const tick = () => {
+        if (tickingFromRef.current !== null) {
+          const elapsed = Math.floor((Date.now() - tickingFromRef.current) / 1000)
+          setSeconds(accumulatedSecondsRef.current + elapsed)
+        }
+      }
+
+      tick()
+      intervalRef.current = setInterval(tick, 1000)
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
@@ -87,6 +95,9 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
 
     const startTime = new Date()
     startTimeRef.current = startTime
+    tickingFromRef.current = Date.now()
+    accumulatedSecondsRef.current = 0
+    setSeconds(0)
 
     try {
       const response = await fetch("/api/reading-sessions", {
@@ -110,10 +121,22 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
   }
 
   const handlePause = () => {
+    if (!isRunning || isPaused) return
+
+    if (tickingFromRef.current !== null) {
+      const elapsed = Math.floor((Date.now() - tickingFromRef.current) / 1000)
+      accumulatedSecondsRef.current += elapsed
+      setSeconds(accumulatedSecondsRef.current)
+    }
+
+    tickingFromRef.current = null
     setIsPaused(true)
   }
 
   const handleResume = () => {
+    if (!isRunning || !isPaused) return
+
+    tickingFromRef.current = Date.now()
     setIsPaused(false)
   }
 
@@ -121,7 +144,11 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
     if (!sessionId) return
 
     const endTime = new Date()
-    const duration = seconds
+    const activeElapsed =
+      tickingFromRef.current !== null
+        ? Math.floor((Date.now() - tickingFromRef.current) / 1000)
+        : 0
+    const duration = accumulatedSecondsRef.current + activeElapsed
 
     try {
       await fetch(`/api/reading-sessions/${sessionId}`, {
@@ -139,6 +166,8 @@ export function ReadingSessionTimer({ books }: ReadingSessionTimerProps) {
       setIsPaused(false)
       setSeconds(0)
       setPagesRead("")
+      accumulatedSecondsRef.current = 0
+      tickingFromRef.current = null
     } catch (error) {
       console.error("Failed to stop session:", error)
     }
