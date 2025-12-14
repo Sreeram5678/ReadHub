@@ -47,6 +47,10 @@ export function LogReadingForm({
       }
     }
     
+    const handleOpenLogReading = () => {
+      setOpen(true)
+    }
+    
     checkHash()
     
     const timer = setTimeout(() => {
@@ -55,11 +59,13 @@ export function LogReadingForm({
     
     window.addEventListener("hashchange", checkHash)
     window.addEventListener("popstate", checkHash)
+    window.addEventListener("open-log-reading", handleOpenLogReading)
     
     return () => {
       clearTimeout(timer)
       window.removeEventListener("hashchange", checkHash)
       window.removeEventListener("popstate", checkHash)
+      window.removeEventListener("open-log-reading", handleOpenLogReading)
     }
   }, [])
   const [loading, setLoading] = useState(false)

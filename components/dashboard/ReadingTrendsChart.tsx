@@ -43,12 +43,12 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <Card>
+      <Card className="h-full flex flex-col">
         <CardHeader>
           <CardTitle>Reading Trends</CardTitle>
           <CardDescription>Your reading activity over the last 30 days</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-12">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
               <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,13 +66,13 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Reading Trends</CardTitle>
         <CardDescription>Your reading activity over the last 30 days</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+      <CardContent className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorPages" x1="0" y1="0" x2="0" y2="1">

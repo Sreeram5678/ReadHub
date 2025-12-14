@@ -210,7 +210,7 @@ export function ReadingGoals({ goals, currentProgress, onGoalAdded }: ReadingGoa
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -271,7 +271,7 @@ export function ReadingGoals({ goals, currentProgress, onGoalAdded }: ReadingGoa
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         {goals.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">
             No active goals. Create one to track your progress!

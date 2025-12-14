@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Quote as QuoteIcon, Pencil } from "lucide-react"
-import { AddQuoteForm } from "./AddQuoteForm"
 import { EditQuoteForm } from "./EditQuoteForm"
 
 interface DailyQuoteData {
@@ -42,14 +41,15 @@ export function DailyQuote() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="h-full flex flex-col">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <QuoteIcon className="h-5 w-5" />
             Daily Quote
           </CardTitle>
+          <CardDescription>Your daily reading inspiration</CardDescription>
         </CardHeader>
-        <CardContent className="min-h-[220px] flex items-center">
+        <CardContent className="flex-1 flex items-center">
           <p className="text-muted-foreground">Loading quote...</p>
         </CardContent>
       </Card>
@@ -61,22 +61,15 @@ export function DailyQuote() {
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <QuoteIcon className="h-5 w-5" />
-            Daily Quote
-          </CardTitle>
-          <AddQuoteForm
-            onQuoteAdded={() => {
-              fetchDailyQuote()
-            }}
-          />
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <QuoteIcon className="h-5 w-5" />
+          Daily Quote
+        </CardTitle>
         <CardDescription>Your daily reading inspiration</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 min-h-[220px]">
+      <CardContent className="space-y-4 flex-1">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-2">
             <blockquote className="text-lg italic border-l-4 border-primary pl-4 py-2 flex-1">

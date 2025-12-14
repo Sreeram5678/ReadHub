@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
 import { ReadingGoals } from "./ReadingGoals"
-import { ReadingSessionTimer } from "@/components/reading/ReadingSessionTimer"
 import { DailyQuote } from "@/components/reading/DailyQuote"
 import { QuickReadingLog } from "@/components/reading/QuickReadingLog"
 import { QuickStatsWidget } from "./QuickStatsWidget"
@@ -156,20 +155,9 @@ export function DashboardClient({
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
-        <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+        <div className="grid gap-6 lg:grid-cols-2 items-stretch">
           <ReadingTrendsChartLazy trends={readingTrends} />
-          <div className="space-y-6">
-            <Card>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="serif-heading text-xl font-semibold text-[color:var(--text)]">Reading Timer</h3>
-                  <p className="text-sm text-muted mt-1">Track your reading sessions</p>
-                </div>
-              </div>
-              <ReadingSessionTimer books={books} />
-            </Card>
-            <QuickReadingLog books={books} onLogAdded={refreshData} />
-          </div>
+          <QuickReadingLog books={books} onLogAdded={refreshData} />
         </div>
       </section>
 
@@ -217,7 +205,7 @@ export function DashboardClient({
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Goals & Insights</h2>
-        <div className="grid gap-6 lg:grid-cols-2 items-start">
+        <div className="grid gap-6 lg:grid-cols-2 items-stretch">
           <ReadingGoals
             goals={readingGoals}
             currentProgress={{

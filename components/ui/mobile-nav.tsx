@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -14,9 +14,27 @@ interface MobileNavProps {
 export function MobileNav({ userName }: MobileNavProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   const isActive = (href: string) => {
     return pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
+  }
+
+  const handleLogReadingClick = () => {
+    setOpen(false)
+    const isOnDashboard = pathname === "/dashboard"
+    
+    if (isOnDashboard) {
+      // Dispatch custom event to open the dialog
+      window.dispatchEvent(new CustomEvent("open-log-reading"))
+    } else {
+      // Navigate to dashboard first, then open dialog
+      router.push("/dashboard")
+      // Small delay to ensure the component is mounted
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("open-log-reading"))
+      }, 300)
+    }
   }
 
   return (
@@ -56,6 +74,13 @@ export function MobileNav({ userName }: MobileNavProps) {
                 {label}
               </Link>
             ))}
+            <Button
+              onClick={handleLogReadingClick}
+              className="mt-3 w-full"
+              size="sm"
+            >
+              Log Reading
+            </Button>
             <div className="mt-3 rounded-xl border border-dashed border-card-border/60 px-4 py-3 text-sm text-muted">
               {userName}
             </div>

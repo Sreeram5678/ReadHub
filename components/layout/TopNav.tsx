@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { Button } from "@/components/ui/button"
@@ -22,12 +22,29 @@ interface TopNavProps {
 
 export function TopNav({ userName = "Reader" }: TopNavProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const initials = userName
     .split(" ")
     .slice(0, 2)
     .map((part) => part[0])
     .join("")
     .toUpperCase()
+
+  const handleLogReadingClick = () => {
+    const isOnDashboard = pathname === "/dashboard"
+    
+    if (isOnDashboard) {
+      // Dispatch custom event to open the dialog
+      window.dispatchEvent(new CustomEvent("open-log-reading"))
+    } else {
+      // Navigate to dashboard first, then open dialog
+      router.push("/dashboard")
+      // Small delay to ensure the component is mounted
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("open-log-reading"))
+      }, 300)
+    }
+  }
 
   return (
     <motion.header
@@ -73,8 +90,8 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-3 md:flex">
             <ThemeToggle />
-            <Button asChild size="sm">
-              <Link href="/dashboard#log-reading">Log Reading</Link>
+            <Button size="sm" onClick={handleLogReadingClick}>
+              Log Reading
             </Button>
             <Link
               href="/profile"

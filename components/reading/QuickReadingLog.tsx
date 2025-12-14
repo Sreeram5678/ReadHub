@@ -91,7 +91,7 @@ export function QuickReadingLog({ books, onLogAdded }: QuickReadingLogProps) {
   const selectedBook = books.find((b) => b.id === selectedBookId)
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="h-5 w-5" />
@@ -99,7 +99,7 @@ export function QuickReadingLog({ books, onLogAdded }: QuickReadingLogProps) {
         </CardTitle>
         <CardDescription>One-tap reading log</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 min-h-[220px] flex flex-col justify-between">
+      <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
           <Label htmlFor="quick-log-book">Book</Label>
           <Select

@@ -136,7 +136,7 @@ export const DEFAULT_WIDGETS: WidgetConfig[] = [
     title: "Reading Timer",
     description: "Track your reading sessions",
     defaultSize: "medium",
-    defaultVisible: true,
+    defaultVisible: false,
     category: "tools",
     gridCols: 1,
     minCols: 1,
