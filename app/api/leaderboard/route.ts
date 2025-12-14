@@ -149,16 +149,39 @@ export async function GET(request: Request) {
         // Get user's timezone for accurate streak calculation
         const userTz = await getUserTimezone(user.id)
 
+        // Calculate the actual period range for consistency calculation
+        // Use the selected period's date range, not the range between first and last reading log
+        let periodRangeDays = 1
+        if (period === "all-time") {
+          // For all-time, use the range from first reading log to today
+          if (readingLogs.length > 0) {
+            const firstLogDate = readingLogs[readingLogs.length - 1].date
+            const today = getTodayInTimezone(userTz)
+            periodRangeDays = Math.ceil((today.getTime() - firstLogDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+          } else {
+            periodRangeDays = 1
+          }
+        } else {
+          // For specific periods, use the actual period range
+          const periodEnd = endDate || getTodayInTimezone(userTz)
+          const periodStart = startDate || (readingLogs.length > 0 ? readingLogs[readingLogs.length - 1].date : periodEnd)
+          periodRangeDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
+        }
+        // Ensure minimum of 1 day to avoid division by zero
+        periodRangeDays = Math.max(periodRangeDays, 1)
+
         // Calculate additional metrics for sorting
         const readingDays = new Set(readingLogs.map(log => log.date.toDateString())).size
-        const dateRange = readingLogs.length > 0 ?
-          (readingLogs[0].date.getTime() - readingLogs[readingLogs.length - 1].date.getTime()) / (1000 * 60 * 60 * 24) + 1 : 1
-        const averageDaily = dateRange > 0 ? totalPages / dateRange : 0
+        // Use period range for averageDaily calculation to be fair
+        // This prevents someone who reads 100 pages in one day from getting 100 pages/day
+        // while someone who reads 10 pages/day for 30 days gets 10 pages/day
+        const averageDaily = periodRangeDays > 0 ? totalPages / periodRangeDays : 0
 
         // Calculate streak using timezone-aware calculation
         const streakData = calculateStreak(allReadingLogs, userTz)
         const currentStreak = streakData.currentStreak
-        const consistency = dateRange > 0 ? (readingDays / dateRange) * 100 : 0
+        // Use period range for consistency, not the range between first and last reading log
+        const consistency = periodRangeDays > 0 ? (readingDays / periodRangeDays) * 100 : 0
 
         return {
           userId: user.id,

@@ -13,12 +13,31 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url)
     const range = searchParams.get("range") || "365" // days
+    const userIdParam = searchParams.get("userId")
 
-    const where: any = {
-      userId: session.user.id,
+    // Use provided userId if available (for viewing other users' heatmaps), otherwise use current user
+    const targetUserId = userIdParam || session.user.id
+
+    // If viewing another user, check if they're friends
+    if (userIdParam && userIdParam !== session.user.id) {
+      const isFriend = await db.friendship.findFirst({
+        where: {
+          OR: [
+            { userId: session.user.id, friendId: userIdParam, status: "accepted" },
+            { userId: userIdParam, friendId: session.user.id, status: "accepted" },
+          ],
+        },
+      })
+      if (!isFriend) {
+        return NextResponse.json({ error: "Access denied" }, { status: 403 })
+      }
     }
 
-    const userTimezone = await getUserTimezone(session.user.id)
+    const where: any = {
+      userId: targetUserId,
+    }
+
+    const userTimezone = await getUserTimezone(targetUserId)
     
     if (range !== "all") {
       const days = parseInt(range)

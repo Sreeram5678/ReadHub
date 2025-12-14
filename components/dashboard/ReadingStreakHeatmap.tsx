@@ -16,19 +16,26 @@ interface HeatmapData {
   pages: number
 }
 
-export function ReadingStreakHeatmap() {
+interface ReadingStreakHeatmapProps {
+  userId?: string
+}
+
+export function ReadingStreakHeatmap({ userId }: ReadingStreakHeatmapProps) {
   const [range, setRange] = useState("365")
   const [data, setData] = useState<HeatmapData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchHeatmapData()
-  }, [range])
+  }, [range, userId])
 
   const fetchHeatmapData = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/reading-heatmap?range=${range}`)
+      const url = userId 
+        ? `/api/reading-heatmap?range=${range}&userId=${userId}`
+        : `/api/reading-heatmap?range=${range}`
+      const response = await fetch(url)
       if (response.ok) {
         const heatmapData = await response.json()
         setData(heatmapData)

@@ -235,7 +235,7 @@ export function UserProfileModal({ user, isOpen, onClose }: UserProfileModalProp
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ReadingStreakHeatmap />
+                <ReadingStreakHeatmap userId={user.id} />
               </CardContent>
             </Card>
           </TabsContent>
