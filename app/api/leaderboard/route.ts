@@ -149,7 +149,7 @@ export async function GET(request: Request) {
         // Get user's timezone for accurate streak calculation
         const userTz = await getUserTimezone(user.id)
 
-        // Calculate the actual period range for consistency calculation
+        // Calculate the actual period range for averageDaily calculation
         // Use the selected period's date range, not the range between first and last reading log
         let periodRangeDays = 1
         if (period === "all-time") {
@@ -180,15 +180,12 @@ export async function GET(request: Request) {
         // Calculate streak using timezone-aware calculation
         const streakData = calculateStreak(allReadingLogs, userTz)
         const currentStreak = streakData.currentStreak
-        // Use period range for consistency, not the range between first and last reading log
-        const consistency = periodRangeDays > 0 ? (readingDays / periodRangeDays) * 100 : 0
 
         return {
           userId: user.id,
           totalPages,
           averageDaily,
           currentStreak,
-          consistency,
           readingDays,
         }
       })
@@ -206,7 +203,6 @@ export async function GET(request: Request) {
           bookCount: user._count.books,
           averageDaily: data?.averageDaily || 0,
           currentStreak: data?.currentStreak || 0,
-          consistency: data?.consistency || 0,
         }
       })
       .filter((user) => {
@@ -222,8 +218,6 @@ export async function GET(request: Request) {
             return user.averageDaily > 0
           case 'streak':
             return user.currentStreak > 0
-          case 'consistency':
-            return user.consistency > 0
           default:
             return user.totalPages > 0
         }
@@ -236,8 +230,6 @@ export async function GET(request: Request) {
             return b.averageDaily - a.averageDaily
           case 'streak':
             return b.currentStreak - a.currentStreak
-          case 'consistency':
-            return b.consistency - a.consistency
           default:
             return b.totalPages - a.totalPages
         }

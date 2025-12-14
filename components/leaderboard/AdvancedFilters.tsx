@@ -21,8 +21,8 @@ interface AdvancedFiltersProps {
   friends: Friend[]
   selectedUsers: string[]
   onUsersChange: (userIds: string[]) => void
-  sortBy: 'pages' | 'speed' | 'streak' | 'consistency'
-  onSortChange: (sortBy: 'pages' | 'speed' | 'streak' | 'consistency') => void
+  sortBy: 'pages' | 'speed' | 'streak'
+  onSortChange: (sortBy: 'pages' | 'speed' | 'streak') => void
 }
 
 export function AdvancedFilters({
@@ -180,11 +180,6 @@ export function AdvancedFilters({
                       🔥 Current Streak
                     </div>
                   </SelectItem>
-                  <SelectItem value="consistency">
-                    <div className="flex items-center gap-2">
-                      📅 Reading Consistency
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -192,7 +187,6 @@ export function AdvancedFilters({
                 {tempSortBy === 'pages' && 'Rank by total pages read in the selected period'}
                 {tempSortBy === 'speed' && 'Rank by average pages read per day'}
                 {tempSortBy === 'streak' && 'Rank by current consecutive reading days'}
-                {tempSortBy === 'consistency' && 'Rank by percentage of days with reading activity'}
               </div>
             </CardContent>
           </Card>

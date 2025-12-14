@@ -56,15 +56,30 @@ export async function GET(
     // Calculate reading patterns
     const readingPatterns = calculateReadingPatterns(readingLogs, userTimezone)
 
-    // Get goals (if they exist in the database)
-    const weeklyGoal = 100 // Default goal, could be made configurable
-    const monthlyGoal = 400
-    const yearlyGoal = 4800
-
+    // Get goals from database for this user
     const now = new Date()
     const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const yearStart = new Date(now.getFullYear(), 0, 1)
+
+    // Fetch user's reading goals from database
+    const userGoals = await db.readingGoal.findMany({
+      where: {
+        userId,
+        endDate: { gte: now },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    // Find goals for each period
+    const weeklyGoalObj = userGoals.find(g => g.period === 'weekly' && g.type === 'pages')
+    const monthlyGoalObj = userGoals.find(g => g.period === 'monthly' && g.type === 'pages')
+    const yearlyGoalObj = userGoals.find(g => g.period === 'yearly' && g.type === 'pages')
+
+    // Use actual goals from database, or default values if not set
+    const weeklyGoal = weeklyGoalObj?.target || 100
+    const monthlyGoal = monthlyGoalObj?.target || 400
+    const yearlyGoal = yearlyGoalObj?.target || 4800
 
     const weeklyProgress = readingLogs
       .filter(log => log.date >= weekStart)

@@ -50,7 +50,7 @@ export function LeaderboardPageClient({
   const [selectedUser, setSelectedUser] = useState<LeaderboardEntry | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState<'pages' | 'speed' | 'streak' | 'consistency'>('pages')
+  const [sortBy, setSortBy] = useState<'pages' | 'speed' | 'streak'>('pages')
   const [friends, setFriends] = useState<Array<{
     id: string
     name: string
@@ -307,7 +307,6 @@ export function LeaderboardPageClient({
             {sortBy === 'pages' && `${period === "all-time" ? "all-time" : period} pages read`}
             {sortBy === 'speed' && "reading speed (pages per day)"}
             {sortBy === 'streak' && "current reading streak"}
-            {sortBy === 'consistency' && "reading consistency"}
             {" "}among your friends
           </CardDescription>
         </CardHeader>

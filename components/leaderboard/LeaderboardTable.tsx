@@ -14,7 +14,6 @@ interface LeaderboardEntry {
   rank: number
   averageDaily?: number
   currentStreak?: number
-  consistency?: number
 }
 
 export function LeaderboardTable({
@@ -26,7 +25,7 @@ export function LeaderboardTable({
   leaderboard: LeaderboardEntry[]
   currentUserId: string
   onUserClick?: (user: LeaderboardEntry) => void
-  sortBy?: 'pages' | 'speed' | 'streak' | 'consistency'
+  sortBy?: 'pages' | 'speed' | 'streak'
 }) {
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="h-6 w-6 text-yellow-500 animate-pulse" />
@@ -122,12 +121,6 @@ export function LeaderboardTable({
                 <>
                   <p className="font-bold text-xl md:text-2xl">{user.currentStreak || 0}</p>
                   <p className="text-xs text-muted-foreground">day streak</p>
-                </>
-              )}
-              {sortBy === 'consistency' && (
-                <>
-                  <p className="font-bold text-xl md:text-2xl">{(user.consistency || 0).toFixed(1)}%</p>
-                  <p className="text-xs text-muted-foreground">consistency</p>
                 </>
               )}
             </div>
