@@ -66,13 +66,19 @@ export function LeaderboardPageClient({
       try {
         const response = await fetch('/api/friends')
         if (response.ok) {
-          const friendsData = await response.json()
-          setFriends(friendsData)
+          const data = await response.json()
+          const friendsList = Array.isArray(data.friends) ? data.friends : []
+          setFriends(friendsList)
           // Initialize selected users to all friends
-          setSelectedUsers(friendsData.map((friend: any) => friend.id))
+          setSelectedUsers(friendsList.map((friend: any) => friend.id))
+        } else {
+          setFriends([])
+          setSelectedUsers([])
         }
       } catch (error) {
         console.error("Error fetching friends:", error)
+        setFriends([])
+        setSelectedUsers([])
       }
     }
     fetchFriends()
@@ -106,7 +112,9 @@ export function LeaderboardPageClient({
         const response = await fetch(url)
         if (response.ok) {
           const data = await response.json()
-          setLeaderboard(data)
+          setLeaderboard(Array.isArray(data) ? data : [])
+        } else {
+          setLeaderboard([])
         }
       } catch (error) {
         console.error("Error fetching leaderboard:", error)
@@ -164,7 +172,10 @@ export function LeaderboardPageClient({
         await fetch(`/api/leaderboard?period=${period}`)
           .then((res) => res.json())
           .then((data) => {
-            setLeaderboard(data)
+            setLeaderboard(Array.isArray(data) ? data : [])
+          })
+          .catch(() => {
+            setLeaderboard([])
           })
         if (action === "send") {
           setIsSearchOpen(false)

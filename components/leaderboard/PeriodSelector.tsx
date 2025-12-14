@@ -30,8 +30,8 @@ export function PeriodSelector({
       setShowCustomRange(true)
     } else {
       setShowCustomRange(false)
-      if (onPeriodChange) {
-        onPeriodChange(period)
+    if (onPeriodChange) {
+      onPeriodChange(period)
       }
     }
   }
@@ -47,21 +47,21 @@ export function PeriodSelector({
 
   return (
     <div className="flex gap-2">
-      <Select value={currentPeriod} onValueChange={handlePeriodChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select period" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all-time">All Time</SelectItem>
-          <SelectItem value="today">Today</SelectItem>
-          <SelectItem value="week">This Week</SelectItem>
-          <SelectItem value="month">This Month</SelectItem>
+    <Select value={currentPeriod} onValueChange={handlePeriodChange}>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select period" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all-time">All Time</SelectItem>
+        <SelectItem value="today">Today</SelectItem>
+        <SelectItem value="week">This Week</SelectItem>
+        <SelectItem value="month">This Month</SelectItem>
           <SelectItem value="last-30-days">Last 30 Days</SelectItem>
           <SelectItem value="quarter">This Quarter</SelectItem>
           <SelectItem value="year">This Year</SelectItem>
           <SelectItem value="custom-range">Custom Range</SelectItem>
-        </SelectContent>
-      </Select>
+      </SelectContent>
+    </Select>
 
       {showCustomRange && onCustomRangeChange && (
         <DateRangePicker
