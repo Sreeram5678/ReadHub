@@ -10,7 +10,13 @@ import { getTodayInTimezone } from "@/lib/timezone"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-async function getLeaderboard(period: string, userId: string, userTimezone: string) {
+async function getLeaderboard(
+  period: string,
+  userId: string,
+  userTimezone: string,
+  customStartDate?: Date,
+  customEndDate?: Date
+) {
   try {
     let startDate: Date | undefined
 
@@ -25,6 +31,27 @@ async function getLeaderboard(period: string, userId: string, userTimezone: stri
       case "month":
         const todayMonth = getTodayInTimezone(userTimezone)
         startDate = new Date(todayMonth.getFullYear(), todayMonth.getMonth(), 1)
+        break
+      case "last-30-days":
+        const thirtyDaysAgo = getTodayInTimezone(userTimezone)
+        startDate = new Date(thirtyDaysAgo.getTime() - 30 * 24 * 60 * 60 * 1000)
+        break
+      case "quarter":
+        const quarterStart = getTodayInTimezone(userTimezone)
+        const currentMonth = quarterStart.getMonth()
+        const quarterMonth = Math.floor(currentMonth / 3) * 3
+        startDate = new Date(quarterStart.getFullYear(), quarterMonth, 1)
+        break
+      case "year":
+        const yearStart = getTodayInTimezone(userTimezone)
+        startDate = new Date(yearStart.getFullYear(), 0, 1)
+        break
+      case "custom-range":
+        startDate = customStartDate
+        if (customEndDate) {
+          const endDate = new Date(customEndDate)
+          endDate.setHours(23, 59, 59, 999)
+        }
         break
       default:
         startDate = undefined
@@ -51,8 +78,16 @@ async function getLeaderboard(period: string, userId: string, userTimezone: stri
     }
 
     const where: Prisma.ReadingLogWhereInput = {}
-    if (startDate) {
-      where.date = { gte: startDate }
+    if (startDate || customEndDate) {
+      where.date = {}
+      if (startDate) {
+        where.date.gte = startDate
+      }
+      if (customEndDate) {
+        const endDate = new Date(customEndDate)
+        endDate.setHours(23, 59, 59, 999)
+        where.date.lte = endDate
+      }
     }
 
     // Fetch only friends and current user
@@ -107,7 +142,7 @@ async function getLeaderboard(period: string, userId: string, userTimezone: stri
 export default async function LeaderboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ period?: string }>
+  searchParams: Promise<{ period?: string; startDate?: string; endDate?: string }>
 }) {
   try {
     const session = await auth()
@@ -118,8 +153,10 @@ export default async function LeaderboardPage({
 
     const params = await searchParams
     const period = params.period || "all-time"
+    const customStartDate = params.startDate ? new Date(params.startDate) : undefined
+    const customEndDate = params.endDate ? new Date(params.endDate) : undefined
     const userTimezone = await getUserTimezone(session.user.id)
-    const leaderboard = await getLeaderboard(period, session.user.id, userTimezone)
+    const leaderboard = await getLeaderboard(period, session.user.id, userTimezone, customStartDate, customEndDate)
 
     return (
       <LeaderboardPageClient

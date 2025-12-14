@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useState, useEffect } from "react"
-import { Search, UserPlus, Check, X } from "lucide-react"
+import { Search, UserPlus, Check, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { UserAvatar } from "./UserAvatar"
+import { UserProfileModal } from "./UserProfileModal"
+import { AdvancedFilters } from "./AdvancedFilters"
 
 interface LeaderboardEntry {
   id: string
@@ -32,6 +34,8 @@ export function LeaderboardPageClient({
   const [leaderboard, setLeaderboard] = useState(initialLeaderboard)
   const [period, setPeriod] = useState(initialPeriod)
   const [loading, setLoading] = useState(false)
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>()
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>()
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Array<{
     id: string
@@ -43,12 +47,64 @@ export function LeaderboardPageClient({
   }>>([])
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<LeaderboardEntry | null>(null)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState<'pages' | 'speed' | 'streak' | 'consistency'>('pages')
+  const [friends, setFriends] = useState<Array<{
+    id: string
+    name: string
+    email: string
+    image?: string | null
+  }>>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState("")
+  const itemsPerPage = 10
+
+  // Fetch friends data on mount
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const response = await fetch('/api/friends')
+        if (response.ok) {
+          const friendsData = await response.json()
+          setFriends(friendsData)
+          // Initialize selected users to all friends
+          setSelectedUsers(friendsData.map((friend: any) => friend.id))
+        }
+      } catch (error) {
+        console.error("Error fetching friends:", error)
+      }
+    }
+    fetchFriends()
+  }, [])
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       setLoading(true)
       try {
-        const response = await fetch(`/api/leaderboard?period=${period}`)
+        let url = `/api/leaderboard?period=${period}&sortBy=${sortBy}`
+        if (period === 'custom-range' && (customStartDate || customEndDate)) {
+          const params = new URLSearchParams()
+          params.set('period', 'custom-range')
+          params.set('sortBy', sortBy)
+          if (customStartDate) {
+            params.set('startDate', customStartDate.toISOString())
+          }
+          if (customEndDate) {
+            params.set('endDate', customEndDate.toISOString())
+          }
+          url = `/api/leaderboard?${params.toString()}`
+        }
+
+        // Add selected users filter
+        if (selectedUsers.length > 0) {
+          const params = new URL(url, window.location.origin).searchParams
+          params.set('userIds', selectedUsers.join(','))
+          url = `/api/leaderboard?${params.toString()}`
+        }
+
+        const response = await fetch(url)
         if (response.ok) {
           const data = await response.json()
           setLeaderboard(data)
@@ -60,7 +116,19 @@ export function LeaderboardPageClient({
       }
     }
     fetchLeaderboard()
-  }, [period])
+  }, [period, customStartDate, customEndDate, selectedUsers, sortBy])
+
+  // Filter leaderboard based on search query
+  const filteredLeaderboard = leaderboard.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Paginate the filtered results
+  const totalPages = Math.ceil(filteredLeaderboard.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedLeaderboard = filteredLeaderboard.slice(startIndex, endIndex)
 
   const currentUserRank =
     leaderboard.findIndex((user) => user.id === currentUserId) + 1
@@ -107,6 +175,11 @@ export function LeaderboardPageClient({
     } catch (error) {
       console.error("Failed to process friend action:", error)
     }
+  }
+
+  const handleUserClick = (user: LeaderboardEntry) => {
+    setSelectedUser(user)
+    setIsProfileModalOpen(true)
   }
 
   return (
@@ -179,10 +252,25 @@ export function LeaderboardPageClient({
               </div>
             </DialogContent>
           </Dialog>
-          <PeriodSelector
-            currentPeriod={period}
-            onPeriodChange={setPeriod}
-          />
+          <div className="flex gap-2">
+            <PeriodSelector
+              currentPeriod={period}
+              onPeriodChange={setPeriod}
+              customStartDate={customStartDate}
+              customEndDate={customEndDate}
+              onCustomRangeChange={(startDate, endDate) => {
+                setCustomStartDate(startDate)
+                setCustomEndDate(endDate)
+              }}
+            />
+            <AdvancedFilters
+              friends={friends}
+              selectedUsers={selectedUsers}
+              onUsersChange={setSelectedUsers}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
+          </div>
         </div>
       </div>
 
@@ -205,8 +293,12 @@ export function LeaderboardPageClient({
         <CardHeader>
           <CardTitle>Friends Leaderboard</CardTitle>
           <CardDescription>
-            Rankings based on {period === "all-time" ? "all-time" : period}{" "}
-            pages read among your friends
+            Rankings based on{" "}
+            {sortBy === 'pages' && `${period === "all-time" ? "all-time" : period} pages read`}
+            {sortBy === 'speed' && "reading speed (pages per day)"}
+            {sortBy === 'streak' && "current reading streak"}
+            {sortBy === 'consistency' && "reading consistency"}
+            {" "}among your friends
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -224,13 +316,76 @@ export function LeaderboardPageClient({
               </p>
             </div>
           ) : (
-            <LeaderboardTable
-              leaderboard={leaderboard}
-              currentUserId={currentUserId}
-            />
+            <>
+              {/* Search and filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search friends..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      setCurrentPage(1) // Reset to first page when searching
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground flex items-center">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredLeaderboard.length)} of {filteredLeaderboard.length} friends
+                </div>
+              </div>
+
+              <LeaderboardTable
+                leaderboard={paginatedLeaderboard}
+                currentUserId={currentUserId}
+                onUserClick={handleUserClick}
+                sortBy={sortBy}
+              />
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm text-muted-foreground">Page</span>
+                    <span className="font-medium">{currentPage}</span>
+                    <span className="text-sm text-muted-foreground">of {totalPages}</span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
+
+      <UserProfileModal
+        user={selectedUser}
+        isOpen={isProfileModalOpen}
+        onClose={() => {
+          setIsProfileModalOpen(false)
+          setSelectedUser(null)
+        }}
+      />
     </div>
   )
 }

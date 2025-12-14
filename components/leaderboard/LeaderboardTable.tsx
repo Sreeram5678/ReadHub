@@ -12,14 +12,21 @@ interface LeaderboardEntry {
   totalPages: number
   bookCount: number
   rank: number
+  averageDaily?: number
+  currentStreak?: number
+  consistency?: number
 }
 
 export function LeaderboardTable({
   leaderboard,
   currentUserId,
+  onUserClick,
+  sortBy = 'pages',
 }: {
   leaderboard: LeaderboardEntry[]
   currentUserId: string
+  onUserClick?: (user: LeaderboardEntry) => void
+  sortBy?: 'pages' | 'speed' | 'streak' | 'consistency'
 }) {
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="h-6 w-6 text-yellow-500 animate-pulse" />
@@ -66,11 +73,12 @@ export function LeaderboardTable({
           <div
             key={user.id}
             className={cn(
-              "flex items-center justify-between rounded-xl border p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+              "flex items-center justify-between rounded-xl border p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer",
               getRankStyle(user.rank, isCurrentUser),
               isCurrentUser && user.rank > 3 && "ring-2 ring-primary/30"
             )}
             style={{ animationDelay: `${index * 50}ms` }}
+            onClick={() => onUserClick?.(user)}
           >
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3 min-w-[80px]">
@@ -98,8 +106,30 @@ export function LeaderboardTable({
               </div>
             </div>
             <div className="text-right">
-              <p className="font-bold text-xl md:text-2xl">{user.totalPages.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">pages</p>
+              {sortBy === 'pages' && (
+                <>
+                  <p className="font-bold text-xl md:text-2xl">{user.totalPages.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">pages</p>
+                </>
+              )}
+              {sortBy === 'speed' && (
+                <>
+                  <p className="font-bold text-xl md:text-2xl">{(user.averageDaily || 0).toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">pages/day</p>
+                </>
+              )}
+              {sortBy === 'streak' && (
+                <>
+                  <p className="font-bold text-xl md:text-2xl">{user.currentStreak || 0}</p>
+                  <p className="text-xs text-muted-foreground">day streak</p>
+                </>
+              )}
+              {sortBy === 'consistency' && (
+                <>
+                  <p className="font-bold text-xl md:text-2xl">{(user.consistency || 0).toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground">consistency</p>
+                </>
+              )}
             </div>
           </div>
         )
