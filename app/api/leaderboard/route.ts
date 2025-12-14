@@ -30,8 +30,7 @@ export async function GET(request: Request) {
         break
       case "month":
         const todayMonth = getTodayInTimezone(userTimezone)
-        startDate = new Date(todayMonth)
-        startDate.setMonth(startDate.getMonth() - 1)
+        startDate = new Date(todayMonth.getFullYear(), todayMonth.getMonth(), 1)
         break
       default:
         startDate = undefined
