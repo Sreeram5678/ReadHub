@@ -125,7 +125,13 @@ async function getLeaderboard(
           bookCount: user._count.books,
         }
       })
-      .filter((user) => user.totalPages > 0)
+      .filter((user) => {
+        // Always include current user, even if they have 0 pages
+        if (user.id === userId) {
+          return true
+        }
+        return user.totalPages > 0
+      })
       .sort((a, b) => b.totalPages - a.totalPages)
       .map((user, index) => ({
         ...user,

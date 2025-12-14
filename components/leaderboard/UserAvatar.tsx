@@ -36,7 +36,16 @@ function getColorClasses(name: string) {
 }
 
 export function UserAvatar({ name, image }: UserAvatarProps) {
-  const [showImage, setShowImage] = useState(Boolean(image))
+  const [showImage, setShowImage] = useState(() => {
+    // Only show image if it's a valid URL
+    if (!image) return false
+    try {
+      const url = new URL(image)
+      return url.protocol === 'http:' || url.protocol === 'https:'
+    } catch {
+      return false
+    }
+  })
   const initials = getInitials(name)
   const color = getColorClasses(name || initials)
 
@@ -52,6 +61,7 @@ export function UserAvatar({ name, image }: UserAvatarProps) {
           sizes="40px"
           className="rounded-full object-cover"
           onError={() => setShowImage(false)}
+          unoptimized
         />
       ) : (
         <span>{initials}</span>

@@ -84,6 +84,10 @@ export async function GET(request: Request) {
     // Filter by selected users if provided
     if (userIdsParam) {
       const selectedUserIds = userIdsParam.split(',').filter(id => userIds.includes(id))
+      // Always include current user even if not in selected users
+      if (selectedUserIds.length > 0 && !selectedUserIds.includes(userId)) {
+        selectedUserIds.push(userId)
+      }
       userIds = selectedUserIds.length > 0 ? selectedUserIds : userIds
     }
 
@@ -169,6 +173,10 @@ export async function GET(request: Request) {
         }
       })
       .filter((user) => {
+        // Always include current user, even if they have 0 pages/metrics
+        if (user.id === userId) {
+          return true
+        }
         // Filter based on sort criteria - only show users with relevant data
         switch (sortBy) {
           case 'pages':
