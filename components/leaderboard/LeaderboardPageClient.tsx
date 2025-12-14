@@ -58,7 +58,6 @@ export function LeaderboardPageClient({
     image?: string | null
   }>>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [searchQuery, setSearchQuery] = useState("")
   const itemsPerPage = 10
 
   // Fetch friends data on mount
