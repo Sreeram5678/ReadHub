@@ -62,18 +62,20 @@ export async function GET(
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const yearStart = new Date(now.getFullYear(), 0, 1)
 
-    // Fetch user's reading goals from database
+    // Fetch user's reading goals from database - use userId from params, not session.user.id
     const userGoals = await db.readingGoal.findMany({
       where: {
-        userId,
+        userId, // This is the userId from the route params, not the current session user
         endDate: { gte: now },
       },
       orderBy: { createdAt: 'desc' },
     })
 
     // Find goals for each period
+    // Note: Goals are stored as "daily", "weekly", "monthly" - no "yearly" exists in the form
     const weeklyGoalObj = userGoals.find(g => g.period === 'weekly' && g.type === 'pages')
     const monthlyGoalObj = userGoals.find(g => g.period === 'monthly' && g.type === 'pages')
+    // Yearly goals don't exist in the form, so we'll use default
     const yearlyGoalObj = userGoals.find(g => g.period === 'yearly' && g.type === 'pages')
 
     // Use actual goals from database, or default values if not set

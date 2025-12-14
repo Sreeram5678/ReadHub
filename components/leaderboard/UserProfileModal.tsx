@@ -64,19 +64,27 @@ export function UserProfileModal({ user, isOpen, onClose }: UserProfileModalProp
 
   useEffect(() => {
     if (user && isOpen) {
+      // Reset analytics when user changes
+      setAnalytics(null)
       fetchUserAnalytics()
+    } else if (!isOpen) {
+      // Clear analytics when modal closes
+      setAnalytics(null)
     }
-  }, [user, isOpen])
+  }, [user?.id, isOpen])
 
   const fetchUserAnalytics = async () => {
     if (!user) return
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/user-analytics/${user.id}`)
+      // Add cache-busting parameter to ensure fresh data
+      const response = await fetch(`/api/user-analytics/${user.id}?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
         setAnalytics(data)
+      } else {
+        console.error("Failed to fetch user analytics:", response.statusText)
       }
     } catch (error) {
       console.error("Failed to fetch user analytics:", error)
@@ -215,12 +223,6 @@ export function UserProfileModal({ user, isOpen, onClose }: UserProfileModalProp
                     <span className="text-sm text-muted-foreground">Books Completed</span>
                     <Badge variant="secondary">{user.bookCount} books</Badge>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Reading Consistency</span>
-                    <Badge variant="secondary">
-                      {analytics?.readingDays ? Math.round((analytics.readingDays / 365) * 100) : 0}% of days
-                    </Badge>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -293,30 +295,11 @@ export function UserProfileModal({ user, isOpen, onClose }: UserProfileModalProp
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Consistency Score</h4>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-muted rounded-full h-2">
-                          <div
-                            className="bg-primary h-2 rounded-full"
-                            style={{
-                              width: `${Math.min((analytics?.readingDays || 0) / 365 * 100, 100)}%`
-                            }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">
-                          {analytics?.readingDays ? Math.round((analytics.readingDays / 365) * 100) : 0}%
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Reading Speed</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {analytics?.averageDaily ? `${analytics.averageDaily.toFixed(1)} pages per day` : 'No data'}
-                      </p>
-                    </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Reading Speed</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {analytics?.averageDaily ? `${analytics.averageDaily.toFixed(1)} pages per day` : 'No data'}
+                    </p>
                   </div>
 
                   <div className="pt-4 border-t">
