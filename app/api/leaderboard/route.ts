@@ -3,7 +3,7 @@ import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 import { getUserTimezone } from "@/lib/user-timezone"
-import { getTodayInTimezone, getStartOfDayInTimezone } from "@/lib/timezone"
+import { getTodayInTimezone, getStartOfDayInTimezone, formatDateInTimezone } from "@/lib/timezone"
 
 export async function GET(request: Request) {
   try {
@@ -123,7 +123,7 @@ export async function GET(request: Request) {
           }
         }
 
-        // Get reading logs for analytics
+        // Get reading logs for analytics (filtered by period for pages/speed calculations)
         const readingLogs = await db.readingLog.findMany({
           where,
           select: {
@@ -133,7 +133,21 @@ export async function GET(request: Request) {
           orderBy: { date: 'desc' },
         })
 
+        // For streak calculation, we need ALL reading logs (not filtered by period)
+        // because streaks are about consecutive days regardless of the selected period
+        const allReadingLogs = await db.readingLog.findMany({
+          where: { userId: user.id },
+          select: {
+            date: true,
+            pagesRead: true,
+          },
+          orderBy: { date: 'desc' },
+        })
+
         const totalPages = readingLogs.reduce((sum, log) => sum + (log.pagesRead || 0), 0)
+
+        // Get user's timezone for accurate streak calculation
+        const userTz = await getUserTimezone(user.id)
 
         // Calculate additional metrics for sorting
         const readingDays = new Set(readingLogs.map(log => log.date.toDateString())).size
@@ -141,8 +155,8 @@ export async function GET(request: Request) {
           (readingLogs[0].date.getTime() - readingLogs[readingLogs.length - 1].date.getTime()) / (1000 * 60 * 60 * 24) + 1 : 1
         const averageDaily = dateRange > 0 ? totalPages / dateRange : 0
 
-        // Calculate streak (simplified version)
-        const streakData = calculateStreak(readingLogs)
+        // Calculate streak using timezone-aware calculation
+        const streakData = calculateStreak(allReadingLogs, userTz)
         const currentStreak = streakData.currentStreak
         const consistency = dateRange > 0 ? (readingDays / dateRange) * 100 : 0
 
@@ -219,29 +233,31 @@ export async function GET(request: Request) {
   }
 }
 
-function calculateStreak(readingLogs: Array<{ date: Date; pagesRead: number | null }>) {
+function calculateStreak(readingLogs: Array<{ date: Date; pagesRead: number | null }>, userTimezone: string) {
   if (readingLogs.length === 0) return { currentStreak: 0, longestStreak: 0 }
 
-  // Sort logs by date descending
-  const sortedLogs = readingLogs.sort((a, b) => b.date.getTime() - a.date.getTime())
+  // Group logs by date in user's timezone
+  const dateMap = new Map<string, number>()
+  readingLogs.forEach(log => {
+    const dateKey = formatDateInTimezone(log.date, userTimezone)
+    dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + (log.pagesRead || 0))
+  })
 
-  // Group by date and check for consecutive days
-  const readingDates = new Set(
-    sortedLogs
-      .filter(log => (log.pagesRead || 0) > 0)
-      .map(log => log.date.toDateString())
-  )
+  // Get unique reading dates sorted in descending order
+  const readingDates = Array.from(dateMap.keys())
+    .filter(date => dateMap.get(date)! > 0)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
-  if (readingDates.size === 0) return { currentStreak: 0, longestStreak: 0 }
+  if (readingDates.length === 0) return { currentStreak: 0, longestStreak: 0 }
 
-  // Calculate current streak
+  // Calculate current streak using timezone-aware dates
   let currentStreak = 0
-  const today = new Date().toDateString()
+  const today = formatDateInTimezone(new Date(), userTimezone)
   let checkDate = new Date(today)
 
   for (let i = 0; i < 365; i++) { // Check up to a year back
-    const dateStr = checkDate.toDateString()
-    if (readingDates.has(dateStr)) {
+    const dateStr = formatDateInTimezone(checkDate, userTimezone)
+    if (dateMap.has(dateStr) && dateMap.get(dateStr)! > 0) {
       currentStreak++
       checkDate.setDate(checkDate.getDate() - 1)
     } else {
@@ -250,14 +266,13 @@ function calculateStreak(readingLogs: Array<{ date: Date; pagesRead: number | nu
   }
 
   // Calculate longest streak
-  const dateArray = Array.from(readingDates).sort()
   let longestStreak = 1
   let tempStreak = 1
 
-  for (let i = 1; i < dateArray.length; i++) {
-    const prevDate = new Date(dateArray[i - 1])
-    const currDate = new Date(dateArray[i])
-    const diffTime = currDate.getTime() - prevDate.getTime()
+  for (let i = 1; i < readingDates.length; i++) {
+    const prevDate = new Date(readingDates[i - 1])
+    const currDate = new Date(readingDates[i])
+    const diffTime = prevDate.getTime() - currDate.getTime()
     const diffDays = diffTime / (1000 * 60 * 60 * 24)
 
     if (diffDays === 1) {
