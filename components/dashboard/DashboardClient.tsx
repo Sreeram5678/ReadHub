@@ -156,8 +156,12 @@ export function DashboardClient({
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
         <div className="grid gap-6 lg:grid-cols-2">
-          <ReadingTrendsChartLazy trends={readingTrends} />
-          <QuickReadingLog books={books} onLogAdded={refreshData} />
+          <div className="min-h-[400px]">
+            <ReadingTrendsChartLazy trends={readingTrends} />
+          </div>
+          <div className="min-h-[400px]">
+            <QuickReadingLog books={books} onLogAdded={refreshData} />
+          </div>
         </div>
       </section>
 

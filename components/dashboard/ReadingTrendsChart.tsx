@@ -71,8 +71,8 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
         <CardTitle>Reading Trends</CardTitle>
         <CardDescription>Your reading activity over the last 30 days</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
+      <CardContent className="flex-1">
+        <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorPages" x1="0" y1="0" x2="0" y2="1">
