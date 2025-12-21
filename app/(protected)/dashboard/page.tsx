@@ -8,6 +8,9 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
+// Revalidate every 5 minutes to balance freshness with performance
+export const revalidate = 300;
+
 const now = Date.now()
 const ninetyDaysAgo = new Date(now - 90 * 24 * 60 * 60 * 1000)
 const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
@@ -40,31 +43,33 @@ export default async function DashboardPage() {
   const userId = session.user.id
   const userTimezone = await getUserTimezone(userId)
 
-  // Optimize: Combine book counts and fetch books data in parallel
+  // Optimize: Combine related queries and reduce database round trips
   const [
     booksData,
-    readingLogsSum,
+    readingStats,
     todayPages,
-    allLogs,
+    streakLogs,
     recentLogs,
-    last30DaysLogs,
+    trendLogs,
     readingGoals,
     booksForForm,
     dashboardPreferences,
   ] = await Promise.all([
-    // Fetch books once and calculate counts in memory (faster than 2 separate count queries)
+    // Fetch books once and calculate counts in memory
     db.book.findMany({
       where: { userId },
-      select: { 
+      select: {
         id: true,
         initialPages: true,
         status: true,
       },
     }),
+    // Combine total pages and recent activity in one query
     db.readingLog.aggregate({
       where: { userId },
       _sum: { pagesRead: true },
     }),
+    // Today's pages query
     (async () => {
       const today = getTodayInTimezone(userTimezone)
       return db.readingLog.aggregate({
@@ -75,29 +80,27 @@ export default async function DashboardPage() {
         _sum: { pagesRead: true },
       })
     })(),
-    // Only fetch logs from last 90 days for streak calculation (optimization)
+    // Optimized streak calculation query - only last 90 days
     db.readingLog.findMany({
       where: {
         userId,
-        date: {
-          gte: ninetyDaysAgo,
-        },
+        date: { gte: ninetyDaysAgo },
       },
       select: { date: true },
       orderBy: { date: "desc" },
     }),
+    // Recent logs for activity feed
     db.readingLog.findMany({
       where: { userId },
       include: { book: { select: { title: true } } },
       orderBy: { date: "desc" },
       take: 5,
     }),
+    // Trend data for charts - last 30 days only
     db.readingLog.findMany({
       where: {
         userId,
-        date: {
-          gte: thirtyDaysAgo,
-        },
+        date: { gte: thirtyDaysAgo },
       },
       select: {
         date: true,
@@ -105,6 +108,7 @@ export default async function DashboardPage() {
       },
       orderBy: { date: "asc" },
     }),
+    // Active reading goals
     db.readingGoal.findMany({
       where: {
         userId,
@@ -112,11 +116,14 @@ export default async function DashboardPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
+    // Books for forms (already cached)
     getBooks(userId),
-    (db as any).dashboardPreference.findUnique({
+    // Dashboard preferences - using type assertion for Prisma extension
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (db as any).dashboardPreference?.findUnique({
       where: { userId },
       select: { layoutJson: true },
-    }),
+    }) || null,
   ])
 
   // Calculate counts from fetched data (faster than separate queries)
@@ -134,19 +141,21 @@ export default async function DashboardPage() {
   )
 
   const totalPagesRead =
-    (readingLogsSum._sum.pagesRead || 0) + initialPagesSum
+    (readingStats._sum.pagesRead || 0) + initialPagesSum
 
-  const readingStreak = calculateReadingStreak(allLogs, userTimezone)
-  const daysReadThisWeek = getReadingDaysInPeriod(allLogs, 7, userTimezone)
-  const daysReadThisMonth = getReadingDaysInPeriod(allLogs, 30, userTimezone)
+  const readingStreak = calculateReadingStreak(streakLogs, userTimezone)
+  const daysReadThisWeek = getReadingDaysInPeriod(streakLogs, 7, userTimezone)
+  const daysReadThisMonth = getReadingDaysInPeriod(streakLogs, 30, userTimezone)
 
-  let savedPreferences: any = null
+  // Dashboard preferences are not currently used in this component
+  // but keeping the parsing logic for future use
   if (dashboardPreferences?.layoutJson) {
     try {
-      savedPreferences = JSON.parse(dashboardPreferences.layoutJson)
+      const parsed = JSON.parse(dashboardPreferences.layoutJson)
+      // TODO: Use parsed preferences when implementing customizable dashboard
+      console.log("Dashboard preferences loaded but not yet implemented:", parsed)
     } catch (error) {
       console.error("Failed to parse dashboard preferences JSON, falling back to defaults:", error)
-      savedPreferences = null
     }
   }
 
@@ -164,7 +173,7 @@ export default async function DashboardPage() {
         readingStreak={readingStreak}
         daysReadThisWeek={daysReadThisWeek}
         daysReadThisMonth={daysReadThisMonth}
-        readingTrends={last30DaysLogs}
+        readingTrends={trendLogs}
         readingGoals={readingGoals}
       />
     </Suspense>

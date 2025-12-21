@@ -1,12 +1,18 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    optimizeCss: true,
   },
-  // Optimize images if you add them later
+  // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -30,6 +36,22 @@ const nextConfig: NextConfig = {
   },
   // Enable compression
   compress: true,
+  // Optimize bundle
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle size in production
+    if (!dev && !isServer) {
+      config.optimization.splitChunks.cacheGroups = {
+        ...config.optimization.splitChunks.cacheGroups,
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+          priority: 10,
+        },
+      };
+    }
+    return config;
+  },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

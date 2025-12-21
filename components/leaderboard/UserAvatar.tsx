@@ -57,11 +57,11 @@ export function UserAvatar({ name, image }: UserAvatarProps) {
         <Image
           src={image}
           alt={name}
-          fill
+          width={40}
+          height={40}
           sizes="40px"
           className="rounded-full object-cover"
           onError={() => setShowImage(false)}
-          unoptimized
         />
       ) : (
         <span>{initials}</span>
