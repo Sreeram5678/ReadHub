@@ -20,6 +20,12 @@ const merriweather = Merriweather({
 export const metadata: Metadata = {
   title: "ReadHub",
   description: "Track your daily reading progress and compete with friends",
+  other: {
+    // Preload critical assets
+    'link[rel="preload"][href="/favicon.ico"][as="image"]': '',
+    'link[rel="dns-prefetch"][href="//fonts.googleapis.com"]': '',
+    'link[rel="preconnect"][href="//fonts.gstatic.com"][crossorigin]': '',
+  },
 };
 
 export default function RootLayout({

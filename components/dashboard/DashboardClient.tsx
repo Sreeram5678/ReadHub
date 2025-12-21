@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
@@ -157,7 +157,15 @@ export function DashboardClient({
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="min-h-[400px]">
-            <ReadingTrendsChartLazy trends={readingTrends} />
+            <Suspense fallback={
+              <Card>
+                <div className="h-[400px] flex items-center justify-center">
+                  <p className="text-muted-foreground">Loading chart...</p>
+                </div>
+              </Card>
+            }>
+              <ReadingTrendsChartLazy trends={readingTrends} />
+            </Suspense>
           </div>
           <div className="min-h-[400px]">
             <QuickReadingLog books={books} onLogAdded={refreshData} />
@@ -225,13 +233,29 @@ export function DashboardClient({
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Activity Overview</h2>
-        <ReadingStreakHeatmapLazy />
+        <Suspense fallback={
+          <Card>
+            <div className="p-6">
+              <p className="text-sm text-muted-foreground">Loading heatmap...</p>
+            </div>
+          </Card>
+        }>
+          <ReadingStreakHeatmapLazy />
+        </Suspense>
       </section>
 
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Recent Activity & Achievements</h2>
         <div className="grid gap-6 lg:grid-cols-2">
-          <AchievementsListLazy />
+          <Suspense fallback={
+            <Card>
+              <div className="p-6">
+                <p className="text-sm text-muted-foreground">Loading achievements...</p>
+              </div>
+            </Card>
+          }>
+            <AchievementsListLazy />
+          </Suspense>
           <RecentActivityWidget recentLogs={recentLogs} onLogUpdated={refreshData} />
         </div>
       </section>
