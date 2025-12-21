@@ -25,7 +25,7 @@ interface ReadingTrendsChartProps {
 
 export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
   // Memoize chart data processing to avoid recalculating on every render
-  const chartData = useMemo(() => {
+  const processedData = useMemo(() => {
     return trends.reduce((acc, log) => {
       const date = new Date(log.date).toLocaleDateString("en-US", {
         month: "short",
@@ -41,7 +41,7 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
     }, [] as { date: string; pages: number }[])
   }, [trends])
 
-  if (chartData.length === 0) {
+  if (processedData.length === 0) {
     return (
       <Card className="h-full flex flex-col">
         <CardHeader>
@@ -65,6 +65,110 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
     )
   }
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: 'var(--surface)',
+        borderColor: 'var(--card-border)',
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 12,
+        titleColor: 'var(--text)',
+        bodyColor: 'var(--text)',
+        titleFont: {
+          size: 13,
+          weight: 600,
+        },
+        bodyFont: {
+          size: 14,
+        },
+        callbacks: {
+          title: (context: any) => context[0].label,
+          label: (context: any) => `Pages: ${context.parsed.y}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          color: 'var(--card-border)',
+          opacity: 0.4,
+        },
+        ticks: {
+          color: 'var(--text)',
+          opacity: 0.7,
+          font: {
+            size: 12,
+          },
+          maxRotation: 45,
+          minRotation: 45,
+        },
+      },
+      y: {
+        grid: {
+          color: 'var(--card-border)',
+          opacity: 0.4,
+        },
+        ticks: {
+          color: 'var(--text)',
+          opacity: 0.7,
+          font: {
+            size: 12,
+          },
+        },
+      },
+    },
+    elements: {
+      point: {
+        radius: 5,
+        backgroundColor: 'var(--accent)',
+        borderColor: 'var(--surface)',
+        borderWidth: 3,
+        hoverRadius: 7,
+      },
+      line: {
+        borderColor: 'var(--accent)',
+        borderWidth: 3,
+        fill: true,
+        backgroundColor: (context: any) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
+          gradient.addColorStop(0, 'var(--accent)');
+          gradient.addColorStop(1, 'var(--accent)');
+          return gradient;
+        },
+      },
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index' as const,
+    },
+  };
+
+  const chartData = {
+    labels: processedData.map(item => item.date),
+    datasets: [
+      {
+        data: processedData.map(item => item.pages),
+        borderColor: 'var(--accent)',
+        backgroundColor: (context: any) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
+          gradient.addColorStop(0, 'var(--accent)');
+          gradient.addColorStop(1, 'var(--accent)');
+          return gradient;
+        },
+        fill: true,
+        tension: 0.4,
+      },
+    ],
+  };
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
@@ -73,22 +177,22 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
       </CardHeader>
       <CardContent className="flex-1">
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={chartData}>
+          <AreaChart data={processedData}>
             <defs>
               <linearGradient id="colorPages" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.5}/>
                 <stop offset="95%" stopColor="var(--accent)" stopOpacity={0.05}/>
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="var(--card-border)" 
-              opacity={0.4} 
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--card-border)"
+              opacity={0.4}
             />
             <XAxis
               dataKey="date"
-              tick={{ 
-                fontSize: 12, 
+              tick={{
+                fontSize: 12,
                 fill: "var(--text)",
                 opacity: 0.7,
               }}
@@ -98,9 +202,9 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
               stroke="var(--card-border)"
               opacity={0.5}
             />
-            <YAxis 
-              tick={{ 
-                fontSize: 12, 
+            <YAxis
+              tick={{
+                fontSize: 12,
                 fill: "var(--text)",
                 opacity: 0.7,
               }}
@@ -132,17 +236,17 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
               stroke="var(--accent)"
               strokeWidth={3}
               fill="url(#colorPages)"
-              dot={{ 
-                r: 5, 
-                fill: "var(--accent)", 
-                strokeWidth: 3, 
-                stroke: "var(--surface)" 
+              dot={{
+                r: 5,
+                fill: "var(--accent)",
+                strokeWidth: 3,
+                stroke: "var(--surface)"
               }}
-              activeDot={{ 
-                r: 7, 
-                fill: "var(--accent)", 
-                strokeWidth: 3, 
-                stroke: "var(--surface)" 
+              activeDot={{
+                r: 7,
+                fill: "var(--accent)",
+                strokeWidth: 3,
+                stroke: "var(--surface)"
               }}
             />
           </AreaChart>
