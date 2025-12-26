@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, startTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -30,6 +31,7 @@ export function BookActions({
   book: Book
   onBookUpdated?: () => void
 }) {
+  const router = useRouter()
   const [editOpen, setEditOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -58,7 +60,10 @@ export function BookActions({
       if (onBookUpdated) {
         onBookUpdated()
       } else {
-        window.location.reload()
+        // Use router.refresh() instead of window.location.reload() for better performance
+        startTransition(() => {
+          router.refresh()
+        })
       }
     } catch (error) {
       console.error("Error updating book:", error)
@@ -85,7 +90,10 @@ export function BookActions({
       if (onBookUpdated) {
         onBookUpdated()
       } else {
-        window.location.reload()
+        // Use router.refresh() instead of window.location.reload() for better performance
+        startTransition(() => {
+          router.refresh()
+        })
       }
     } catch (error) {
       console.error("Error deleting book:", error)
@@ -108,7 +116,10 @@ export function BookActions({
       if (onBookUpdated) {
         onBookUpdated()
       } else {
-        window.location.reload()
+        // Use router.refresh() instead of window.location.reload() for better performance
+        startTransition(() => {
+          router.refresh()
+        })
       }
     } catch (error) {
       console.error("Error updating book status:", error)
@@ -131,7 +142,10 @@ export function BookActions({
       if (onBookUpdated) {
         onBookUpdated()
       } else {
-        window.location.reload()
+        // Use router.refresh() instead of window.location.reload() for better performance
+        startTransition(() => {
+          router.refresh()
+        })
       }
     } catch (error) {
       console.error("Error moving book to TBR:", error)
@@ -154,7 +168,10 @@ export function BookActions({
       if (onBookUpdated) {
         onBookUpdated()
       } else {
-        window.location.reload()
+        // Use router.refresh() instead of window.location.reload() for better performance
+        startTransition(() => {
+          router.refresh()
+        })
       }
     } catch (error) {
       console.error("Error moving book to reading:", error)
@@ -181,7 +198,10 @@ export function BookActions({
       if (onBookUpdated) {
         onBookUpdated()
       } else {
-        window.location.reload()
+        // Use router.refresh() instead of window.location.reload() for better performance
+        startTransition(() => {
+          router.refresh()
+        })
       }
     } catch (error) {
       console.error("Error marking book as DNF:", error)

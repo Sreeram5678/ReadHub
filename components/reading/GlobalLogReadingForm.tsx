@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, startTransition, useDeferredValue } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,6 +32,7 @@ interface Book {
 }
 
 export function GlobalLogReadingForm() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(false)
@@ -258,8 +260,10 @@ export function GlobalLogReadingForm() {
       })
       setOpen(false)
 
-      // Refresh the page to update any stats
-      window.location.reload()
+      // Refresh the page to update any stats - use router.refresh() for better performance
+      startTransition(() => {
+        router.refresh()
+      })
     } catch (error) {
       console.error("Error logging reading:", error)
       const errorMessage = error instanceof Error ? error.message : "Failed to log reading. Please try again."
