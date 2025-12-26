@@ -120,6 +120,7 @@
   .glass-panel {
     background-color: var(--glass);
     border: 1px solid var(--glass-border);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
   }
   
