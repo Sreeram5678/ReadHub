@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, forwardRef, useImperativeHandle } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,8 +20,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
+export const AddBookForm = forwardRef<
+  { open: () => void },
+  { onBookAdded: () => void }
+>(({ onBookAdded }, ref) => {
   const [open, setOpen] = useState(false)
+
+  useImperativeHandle(ref, () => ({
+    open: () => setOpen(true),
+  }))
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
@@ -175,5 +182,7 @@ export function AddBookForm({ onBookAdded }: { onBookAdded: () => void }) {
       </DialogContent>
     </Dialog>
   )
-}
+})
+
+AddBookForm.displayName = "AddBookForm"
 

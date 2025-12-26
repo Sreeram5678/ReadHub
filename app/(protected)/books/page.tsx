@@ -4,13 +4,18 @@ import { db } from "@/lib/db"
 import { BooksPageClient } from "@/components/books/BooksPageClient"
 
 async function getBooks(userId: string) {
-  // Fetch books with logs in a single query using include (fixes N+1 problem)
+  // Fetch books with logs and ratings in a single query using include (fixes N+1 problem)
   const books = await db.book.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
       readingLogs: {
         select: { pagesRead: true, date: true },
+      },
+      ratings: {
+        where: { userId },
+        select: { overallRating: true },
+        take: 1,
       },
     },
   })
@@ -25,6 +30,7 @@ async function getBooks(userId: string) {
       pagesRead: log.pagesRead,
       date: log.date.toISOString(),
     })),
+    rating: book.ratings[0]?.overallRating || null,
   }))
 }
 

@@ -51,9 +51,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { bookId, pagesRead, date } = body
+    const { bookId, pagesRead, startPage, endPage, date } = body
 
-    if (!bookId || !pagesRead) {
+    // Calculate pagesRead from startPage/endPage if provided
+    let calculatedPagesRead = pagesRead
+    if (startPage && endPage) {
+      const start = parseInt(startPage)
+      const end = parseInt(endPage)
+      if (start > 0 && end >= start) {
+        calculatedPagesRead = end - start + 1
+      }
+    }
+
+    if (!bookId || !calculatedPagesRead) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -83,11 +93,15 @@ export async function POST(request: Request) {
       },
     })
 
+    const pagesToLog = parseInt(calculatedPagesRead)
+    const newCurrentPage = endPage ? Math.min(parseInt(endPage), book.totalPages) : Math.min(
+      book.currentPage + pagesToLog,
+      book.totalPages
+    )
+
     if (existingLog) {
-      const newPagesRead = parseInt(pagesRead)
       // Add pages to existing log instead of replacing
-      const totalPagesRead = existingLog.pagesRead + newPagesRead
-      const pagesDifference = newPagesRead
+      const totalPagesRead = existingLog.pagesRead + pagesToLog
 
       const updatedLog = await db.readingLog.update({
         where: { id: existingLog.id },
@@ -97,10 +111,7 @@ export async function POST(request: Request) {
       await db.book.update({
         where: { id: bookId },
         data: {
-          currentPage: Math.min(
-            Math.max(0, book.currentPage + pagesDifference),
-            book.totalPages
-          ),
+          currentPage: newCurrentPage,
         },
       })
 
@@ -113,7 +124,7 @@ export async function POST(request: Request) {
       data: {
         userId: session.user.id,
         bookId,
-        pagesRead: parseInt(pagesRead),
+        pagesRead: pagesToLog,
         date: logDate,
       },
     })
@@ -121,10 +132,7 @@ export async function POST(request: Request) {
     const updatedBook = await db.book.update({
       where: { id: bookId },
       data: {
-        currentPage: Math.min(
-          book.currentPage + parseInt(pagesRead),
-          book.totalPages
-        ),
+        currentPage: newCurrentPage,
       },
     })
 

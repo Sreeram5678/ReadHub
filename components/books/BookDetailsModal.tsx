@@ -13,10 +13,13 @@ import { Button } from "@/components/ui/button"
 import { ProgressRing } from "@/components/ui/progress-ring"
 import { BookRatingForm } from "./BookRatingForm"
 import { ChapterNotesList } from "./ChapterNotesList"
+import { ReadingJournalList } from "./ReadingJournalList"
+import { VocabularyList } from "./VocabularyList"
+import { ReReadTracking } from "./ReReadTracking"
 import { BookTimeEstimate } from "./BookTimeEstimate"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookActions } from "./BookActions"
-import { Star, Calendar, BookOpen, Clock, TrendingUp, FileText } from "lucide-react"
+import { Star, Calendar, BookOpen, Clock, TrendingUp, FileText, BookMarked, BookOpenCheck } from "lucide-react"
 import { formatTimeEstimate } from "@/lib/reading-speed"
 
 interface Book {
@@ -257,7 +260,7 @@ export function BookDetailsModal({
 
           {/* Tabs for additional content */}
           <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="notes">
                 <FileText className="h-4 w-4 mr-2" />
                 Notes
@@ -266,7 +269,19 @@ export function BookDetailsModal({
                 <Star className="h-4 w-4 mr-2" />
                 Rate
               </TabsTrigger>
-              <TabsTrigger value="logs">Reading Logs</TabsTrigger>
+              <TabsTrigger value="logs">Logs</TabsTrigger>
+              <TabsTrigger value="journal">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Journal
+              </TabsTrigger>
+              <TabsTrigger value="vocabulary">
+                <BookMarked className="h-4 w-4 mr-2" />
+                Words
+              </TabsTrigger>
+              <TabsTrigger value="rereads">
+                <BookOpenCheck className="h-4 w-4 mr-2" />
+                Re-reads
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="notes" className="mt-4">
               <ChapterNotesList bookId={book.id} />
@@ -321,6 +336,15 @@ export function BookDetailsModal({
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+            <TabsContent value="journal" className="mt-4">
+              <ReadingJournalList bookId={book.id} />
+            </TabsContent>
+            <TabsContent value="vocabulary" className="mt-4">
+              <VocabularyList bookId={book.id} />
+            </TabsContent>
+            <TabsContent value="rereads" className="mt-4">
+              <ReReadTracking bookId={book.id} bookTitle={book.title} />
             </TabsContent>
           </Tabs>
         </div>

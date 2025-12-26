@@ -17,10 +17,11 @@ import { Button as QuickButton } from "@/components/ui/button"
 interface QuickLogButtonProps {
   bookId: string
   bookTitle: string
+  currentPage?: number
   onLogAdded: () => void
 }
 
-export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButtonProps) {
+export function QuickLogButton({ bookId, bookTitle, currentPage = 0, onLogAdded }: QuickLogButtonProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [startPage, setStartPage] = useState("")
@@ -38,6 +39,13 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
       })
       .catch(() => {})
   }, [])
+
+  // Pre-fill start page when dialog opens
+  useEffect(() => {
+    if (open && currentPage > 0 && !startPage) {
+      setStartPage((currentPage + 1).toString())
+    }
+  }, [open, currentPage, startPage])
 
   const calculatePagesRead = (start: number, end: number): number => {
     if (start <= 0 || end <= 0 || end < start) return 0
@@ -68,6 +76,8 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
         body: JSON.stringify({
           bookId,
           pagesRead: pagesToSubmit,
+          startPage: start.toString(),
+          endPage: end.toString(),
           date: new Date().toLocaleDateString("en-CA", { timeZone: userTimezone }),
         }),
       })
@@ -219,6 +229,12 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
               >
                 Cancel
               </Button>
+            </div>
+            {currentPage > 0 && (
+              <p className="text-xs text-muted-foreground text-center">
+                Current page: {currentPage} | Suggested start: {currentPage + 1}
+              </p>
+            )}
             </div>
           </div>
         </DialogContent>

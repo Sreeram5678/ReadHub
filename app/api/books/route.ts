@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       ? [{ priority: "asc" }, { createdAt: "desc" }]
       : { createdAt: "desc" }
 
-    // Include readingLogs to avoid N+1 queries
+    // Include readingLogs and ratings to avoid N+1 queries
     const books = await db.book.findMany({
       where,
       orderBy,
@@ -29,10 +29,26 @@ export async function GET(request: Request) {
         readingLogs: {
           select: { pagesRead: true, date: true },
         },
+        ratings: {
+          where: { userId: session.user.id },
+          select: { overallRating: true },
+          take: 1,
+        },
       },
     })
 
-    return NextResponse.json(books)
+    // Convert Date objects to strings and include rating
+    return NextResponse.json(books.map(book => ({
+      ...book,
+      createdAt: book.createdAt.toISOString(),
+      updatedAt: book.updatedAt.toISOString(),
+      completedAt: book.completedAt?.toISOString() || null,
+      readingLogs: book.readingLogs.map(log => ({
+        pagesRead: log.pagesRead,
+        date: log.date.toISOString(),
+      })),
+      rating: book.ratings[0]?.overallRating || null,
+    })))
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch books" },
