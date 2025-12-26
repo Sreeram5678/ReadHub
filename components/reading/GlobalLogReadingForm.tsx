@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, startTransition, useDeferredValue } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -72,15 +72,20 @@ export function GlobalLogReadingForm() {
       })
   }, [])
 
-  // Fetch books on component mount
+  // Lazy load books when dialog opens (performance optimization)
   useEffect(() => {
-    fetchBooks()
-  }, [fetchBooks])
+    if (open && books.length === 0) {
+      fetchBooks()
+    }
+  }, [open, books.length, fetchBooks])
 
   // Listen for the custom event
   useEffect(() => {
     const handleOpenLogReading = () => {
-      setOpen(true)
+      // Defer the state update to avoid blocking the main thread
+      startTransition(() => {
+        setOpen(true)
+      })
     }
 
     const checkHash = () => {
@@ -140,20 +145,33 @@ export function GlobalLogReadingForm() {
     }
   }, [books, getStartPageForBook])
 
+  // Defer non-critical form data updates for better performance
+  const deferredFormData = useDeferredValue(formData)
+
   const selectedBook = useMemo(
-    () => books.find((book) => book.id === formData.bookId),
-    [books, formData.bookId]
+    () => books.find((book) => book.id === deferredFormData.bookId),
+    [books, deferredFormData.bookId]
   )
 
   const computedPagesRead = useMemo(() => {
-    const start = parseInt(formData.startPage, 10)
-    const end = parseInt(formData.endPage, 10)
+    const start = parseInt(deferredFormData.startPage, 10)
+    const end = parseInt(deferredFormData.endPage, 10)
     if (Number.isNaN(start) || Number.isNaN(end)) {
       return null
     }
     const diff = end - start + 1
     return diff > 0 ? diff : null
-  }, [formData.startPage, formData.endPage])
+  }, [deferredFormData.startPage, deferredFormData.endPage])
+
+  // Memoize Select items to prevent unnecessary re-renders
+  const bookItems = useMemo(
+    () => books.map((book) => (
+      <SelectItem key={book.id} value={book.id}>
+        {book.title} by {book.author}
+      </SelectItem>
+    )),
+    [books]
+  )
 
   const handleBookChange = (bookId: string) => {
     const book = books.find((b) => b.id === bookId)
@@ -288,11 +306,7 @@ export function GlobalLogReadingForm() {
                   <SelectValue placeholder="Select a book" />
                 </SelectTrigger>
                 <SelectContent>
-                  {books.map((book) => (
-                    <SelectItem key={book.id} value={book.id}>
-                      {book.title} by {book.author}
-                    </SelectItem>
-                  ))}
+                  {bookItems}
                 </SelectContent>
               </Select>
             </div>

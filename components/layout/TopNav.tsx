@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { startTransition } from "react"
 import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { Button } from "@/components/ui/button"
@@ -32,8 +33,10 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
     .toUpperCase()
 
   const handleLogReadingClick = () => {
-    // Dispatch custom event to open the dialog - now works from any page
-    window.dispatchEvent(new CustomEvent("open-log-reading"))
+    // Defer the event dispatch to avoid blocking the main thread
+    startTransition(() => {
+      window.dispatchEvent(new CustomEvent("open-log-reading"))
+    })
   }
 
   return (
