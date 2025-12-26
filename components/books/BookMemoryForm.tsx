@@ -123,6 +123,7 @@ export function BookMemoryForm({
         body: JSON.stringify({
           bookId,
           ...formData,
+          lifeEvent: formData.lifeEvent || null,
         }),
       })
 
@@ -199,16 +200,16 @@ export function BookMemoryForm({
           <div className="space-y-2">
             <Label htmlFor="lifeEvent">Life Event (Optional)</Label>
             <Select
-              value={formData.lifeEvent || ""}
+              value={formData.lifeEvent || "none"}
               onValueChange={(value) =>
-                setFormData({ ...formData, lifeEvent: value })
+                setFormData({ ...formData, lifeEvent: value === "none" ? "" : value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select or leave blank" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 <SelectItem value="vacation">Vacation</SelectItem>
                 <SelectItem value="graduation">Graduation</SelectItem>
                 <SelectItem value="moving">Moving</SelectItem>

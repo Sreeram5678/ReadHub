@@ -77,6 +77,7 @@ export function ReadingJournalList({ bookId }: ReadingJournalListProps) {
         body: JSON.stringify({
           bookId,
           ...formData,
+          mood: formData.mood || null,
         }),
       })
 
@@ -212,14 +213,14 @@ export function ReadingJournalList({ bookId }: ReadingJournalListProps) {
             <div className="space-y-2">
               <Label htmlFor="mood">Mood (Optional)</Label>
               <Select
-                value={formData.mood}
-                onValueChange={(value) => setFormData({ ...formData, mood: value })}
+                value={formData.mood || "none"}
+                onValueChange={(value) => setFormData({ ...formData, mood: value === "none" ? "" : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select mood" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   <SelectItem value="excited">Excited</SelectItem>
                   <SelectItem value="relaxed">Relaxed</SelectItem>
                   <SelectItem value="curious">Curious</SelectItem>
