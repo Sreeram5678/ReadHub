@@ -141,6 +141,7 @@ export const AddBookForm = forwardRef<
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="reading">Currently Reading</SelectItem>
+                <SelectItem value="finished">Finished</SelectItem>
                 <SelectItem value="tbr">To Be Read (TBR)</SelectItem>
                 <SelectItem value="dnf">Did Not Finish (DNF)</SelectItem>
               </SelectContent>
