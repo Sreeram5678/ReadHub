@@ -235,7 +235,6 @@ export function QuickLogButton({ bookId, bookTitle, currentPage = 0, onLogAdded 
                 Current page: {currentPage} | Suggested start: {currentPage + 1}
               </p>
             )}
-            </div>
           </div>
         </DialogContent>
       </Dialog>
