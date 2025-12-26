@@ -33,17 +33,13 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
 
   const handleLogReadingClick = () => {
     const isOnDashboard = pathname === "/dashboard"
-    
+
     if (isOnDashboard) {
       // Dispatch custom event to open the dialog
       window.dispatchEvent(new CustomEvent("open-log-reading"))
     } else {
-      // Navigate to dashboard first, then open dialog
-      router.push("/dashboard")
-      // Small delay to ensure the component is mounted
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("open-log-reading"))
-      }, 300)
+      // Navigate to dashboard with hash to open dialog
+      router.push("/dashboard#log-reading")
     }
   }
 
