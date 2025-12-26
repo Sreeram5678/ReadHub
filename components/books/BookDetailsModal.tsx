@@ -16,10 +16,11 @@ import { ChapterNotesList } from "./ChapterNotesList"
 import { ReadingJournalList } from "./ReadingJournalList"
 import { VocabularyList } from "./VocabularyList"
 import { ReReadTracking } from "./ReReadTracking"
+import { BookMemoryList } from "./BookMemoryList"
 import { BookTimeEstimate } from "./BookTimeEstimate"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookActions } from "./BookActions"
-import { Star, Calendar, BookOpen, Clock, TrendingUp, FileText, BookMarked, BookOpenCheck } from "lucide-react"
+import { Star, Calendar, BookOpen, Clock, TrendingUp, FileText, BookMarked, BookOpenCheck, MapPin } from "lucide-react"
 import { formatTimeEstimate } from "@/lib/reading-speed"
 
 interface Book {
@@ -260,27 +261,31 @@ export function BookDetailsModal({
 
           {/* Tabs for additional content */}
           <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="notes">
-                <FileText className="h-4 w-4 mr-2" />
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-1">
+              <TabsTrigger value="notes" className="text-xs">
+                <FileText className="h-4 w-4 mr-1" />
                 Notes
               </TabsTrigger>
-              <TabsTrigger value="rating">
-                <Star className="h-4 w-4 mr-2" />
+              <TabsTrigger value="rating" className="text-xs">
+                <Star className="h-4 w-4 mr-1" />
                 Rate
               </TabsTrigger>
-              <TabsTrigger value="logs">Logs</TabsTrigger>
-              <TabsTrigger value="journal">
-                <BookOpen className="h-4 w-4 mr-2" />
+              <TabsTrigger value="logs" className="text-xs">Logs</TabsTrigger>
+              <TabsTrigger value="journal" className="text-xs">
+                <BookOpen className="h-4 w-4 mr-1" />
                 Journal
               </TabsTrigger>
-              <TabsTrigger value="vocabulary">
-                <BookMarked className="h-4 w-4 mr-2" />
+              <TabsTrigger value="vocabulary" className="text-xs">
+                <BookMarked className="h-4 w-4 mr-1" />
                 Words
               </TabsTrigger>
-              <TabsTrigger value="rereads">
-                <BookOpenCheck className="h-4 w-4 mr-2" />
+              <TabsTrigger value="rereads" className="text-xs">
+                <BookOpenCheck className="h-4 w-4 mr-1" />
                 Re-reads
+              </TabsTrigger>
+              <TabsTrigger value="memories" className="text-xs">
+                <MapPin className="h-4 w-4 mr-1" />
+                Memories
               </TabsTrigger>
             </TabsList>
             <TabsContent value="notes" className="mt-4">
@@ -345,6 +350,9 @@ export function BookDetailsModal({
             </TabsContent>
             <TabsContent value="rereads" className="mt-4">
               <ReReadTracking bookId={book.id} bookTitle={book.title} />
+            </TabsContent>
+            <TabsContent value="memories" className="mt-4">
+              <BookMemoryList bookId={book.id} bookTitle={book.title} />
             </TabsContent>
           </Tabs>
         </div>
