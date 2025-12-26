@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { TopNav } from "@/components/layout/TopNav"
+import { GlobalLogReadingForm } from "@/components/reading/GlobalLogReadingForm"
 
 export default async function ProtectedLayout({
   children,
@@ -19,6 +20,7 @@ export default async function ProtectedLayout({
       <main className="mx-auto min-h-[calc(100vh-5rem)] max-w-6xl px-4 py-6 md:py-10">
         {children}
       </main>
+      <GlobalLogReadingForm />
     </div>
   )
 }

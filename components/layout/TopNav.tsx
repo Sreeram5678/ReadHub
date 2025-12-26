@@ -32,15 +32,8 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
     .toUpperCase()
 
   const handleLogReadingClick = () => {
-    const isOnDashboard = pathname === "/dashboard"
-
-    if (isOnDashboard) {
-      // Dispatch custom event to open the dialog
-      window.dispatchEvent(new CustomEvent("open-log-reading"))
-    } else {
-      // Navigate to dashboard with hash to open dialog
-      router.push("/dashboard#log-reading")
-    }
+    // Dispatch custom event to open the dialog - now works from any page
+    window.dispatchEvent(new CustomEvent("open-log-reading"))
   }
 
   return (

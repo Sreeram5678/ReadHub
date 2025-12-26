@@ -14,7 +14,11 @@ export async function GET(request: Request) {
 
     const where: any = { userId: session.user.id }
     if (status) {
-      where.status = status
+      if (status === "not_completed") {
+        where.status = { not: "completed" }
+      } else {
+        where.status = status
+      }
     }
 
     const orderBy: any = status === "tbr"
