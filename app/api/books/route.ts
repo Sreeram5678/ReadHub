@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       orderBy,
       include: {
         readingLogs: {
-          select: { pagesRead: true },
+          select: { pagesRead: true, date: true },
         },
       },
     })

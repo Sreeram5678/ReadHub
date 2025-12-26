@@ -1,10 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import type { ChangeEvent, MouseEvent } from "react"
 import { AddBookForm } from "./AddBookForm"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookActions } from "./BookActions"
 import { ProgressRing } from "@/components/ui/progress-ring"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -13,6 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { BookDetailsModal } from "./BookDetailsModal"
+import { QuickLogButton } from "./QuickLogButton"
+import { Search, ArrowUpDown, Calendar, BookOpen, TrendingUp } from "lucide-react"
 
 interface Book {
   id: string
@@ -21,14 +27,21 @@ interface Book {
   totalPages: number
   initialPages: number
   status?: string
-  readingLogs: { pagesRead: number }[]
+  seriesName?: string | null
+  createdAt: string
+  readingLogs: { pagesRead: number; date: string }[]
 }
 
 type BooksFilter = "all" | "reading" | "completed"
+type SortOption = "title" | "author" | "dateAdded" | "progress" | "pagesRead"
 
 export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
   const [books, setBooks] = useState(initialBooks)
   const [filter, setFilter] = useState<BooksFilter>("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState<SortOption>("dateAdded")
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
 
   const refreshBooks = async () => {
     const response = await fetch("/api/books")
@@ -39,16 +52,67 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
     }
   }
 
-  const completedBooks = books.filter((b) => b.status === "completed").length
+  const completedBooks = books.filter((b: Book) => b.status === "completed").length
   const completionPercentage =
     books.length > 0 ? Math.round((completedBooks / books.length) * 100) : 0
 
-  const filteredBooks = useMemo(() => {
-    if (filter === "all") return books
-    if (filter === "reading") return books.filter((b) => b.status === "reading")
-    if (filter === "completed") return books.filter((b) => b.status === "completed")
-    return books
-  }, [books, filter])
+  const filteredAndSortedBooks = useMemo(() => {
+    // First apply search filter
+    let result = books
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(
+        (book: Book) =>
+          book.title.toLowerCase().includes(query) ||
+          book.author.toLowerCase().includes(query) ||
+          (book.seriesName && book.seriesName.toLowerCase().includes(query))
+      )
+    }
+
+    // Then apply status filter
+    if (filter === "reading") {
+      result = result.filter((b: Book) => b.status === "reading")
+    } else if (filter === "completed") {
+      result = result.filter((b: Book) => b.status === "completed")
+    }
+
+    // Then apply sorting
+    result = [...result].sort((a: Book, b: Book) => {
+      switch (sortBy) {
+        case "title":
+          return a.title.localeCompare(b.title)
+        case "author":
+          return a.author.localeCompare(b.author)
+        case "dateAdded":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        case "progress": {
+          const aProgress =
+            ((a.initialPages + a.readingLogs.reduce((sum: number, log: { pagesRead: number }) => sum + log.pagesRead, 0)) /
+              a.totalPages) *
+            100
+          const bProgress =
+            ((b.initialPages + b.readingLogs.reduce((sum: number, log: { pagesRead: number }) => sum + log.pagesRead, 0)) /
+              b.totalPages) *
+            100
+          return bProgress - aProgress
+        }
+        case "pagesRead": {
+          const aPages = a.initialPages + a.readingLogs.reduce((sum: number, log: { pagesRead: number }) => sum + log.pagesRead, 0)
+          const bPages = b.initialPages + b.readingLogs.reduce((sum: number, log: { pagesRead: number }) => sum + log.pagesRead, 0)
+          return bPages - aPages
+        }
+        default:
+          return 0
+      }
+    })
+
+    return result
+  }, [books, filter, searchQuery, sortBy])
+
+  const handleBookClick = (book: Book) => {
+    setSelectedBook(book)
+    setDetailsModalOpen(true)
+  }
 
   return (
     <div className="space-y-8">
@@ -67,7 +131,7 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
         <div className="flex items-center gap-3 self-start md:self-auto">
           <Select
             value={filter}
-            onValueChange={(value) => setFilter(value as BooksFilter)}
+            onValueChange={(value: string) => setFilter(value as BooksFilter)}
           >
             <SelectTrigger size="sm" className="min-w-[180px]">
               <SelectValue />
@@ -78,8 +142,36 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
               <SelectItem value="completed">Finished</SelectItem>
             </SelectContent>
           </Select>
-        <AddBookForm onBookAdded={refreshBooks} />
+          <AddBookForm onBookAdded={refreshBooks} />
         </div>
+      </div>
+
+      {/* Search and Sort Controls */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by title, author, or series..."
+            value={searchQuery}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as SortOption)}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4" />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="dateAdded">Date Added</SelectItem>
+            <SelectItem value="title">Title A-Z</SelectItem>
+            <SelectItem value="author">Author A-Z</SelectItem>
+            <SelectItem value="progress">Progress</SelectItem>
+            <SelectItem value="pagesRead">Pages Read</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {books.length === 0 ? (
@@ -97,7 +189,7 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
             <AddBookForm onBookAdded={refreshBooks} />
           </CardContent>
         </Card>
-      ) : filteredBooks.length === 0 ? (
+      ) : filteredAndSortedBooks.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mb-4">
@@ -105,82 +197,125 @@ export function BooksPageClient({ initialBooks }: { initialBooks: Book[] }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold mb-2">No books match this view</h3>
+            <h3 className="text-lg font-semibold mb-2">No books match your search</h3>
             <p className="text-sm text-muted-foreground">
-              Try switching to a different section from the dropdown above.
+              Try adjusting your search query or filter options.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredBooks.map((book) => {
-            const totalPagesRead = book.initialPages + book.readingLogs.reduce(
-              (sum, log) => sum + log.pagesRead,
-              0
-            )
-            const remainingPages = Math.max(0, book.totalPages - totalPagesRead)
-            const progress = (totalPagesRead / book.totalPages) * 100
-            const isCompleted = book.status === "completed"
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredAndSortedBooks.map((book: Book) => {
+              const totalPagesRead = book.initialPages + book.readingLogs.reduce(
+                (sum: number, log: { pagesRead: number; date: string }) => sum + log.pagesRead,
+                0
+              )
+              const remainingPages = Math.max(0, book.totalPages - totalPagesRead)
+              const progress = (totalPagesRead / book.totalPages) * 100
+              const isCompleted = book.status === "completed"
+              const readingDays = new Set(book.readingLogs.map((log: { date: string }) => log.date.split('T')[0])).size
+              const daysSinceFirstLog = book.readingLogs.length > 0
+                ? Math.ceil((new Date().getTime() - new Date(book.readingLogs[0].date).getTime()) / (1000 * 60 * 60 * 24)) + 1
+                : 0
+              const avgPagesPerDay = daysSinceFirstLog > 0 ? (totalPagesRead / daysSinceFirstLog) : 0
 
-            return (
-              <Card
-                key={book.id}
-                className={cn(
-                  "relative overflow-hidden transition-all duration-300",
-                  isCompleted 
-                    ? "border-emerald-500/40 bg-gradient-to-br from-emerald-500/5 to-transparent" 
-                    : "border-primary/10"
-                )}
-              >
-                {isCompleted && (
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full -mr-12 -mt-12" />
-                )}
-                <CardHeader className="relative">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <CardTitle className="line-clamp-2 text-base md:text-lg font-semibold">{book.title}</CardTitle>
-                      <CardDescription className="mt-1 text-xs md:text-sm">
-                        by {book.author}
-                        {isCompleted && (
-                          <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-emerald-500/20 to-emerald-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                            ✓ Completed
-                          </span>
-                        )}
-                        {!isCompleted && book.status === "reading" && (
-                          <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-primary/20 to-accent/20 px-2.5 py-0.5 text-[11px] font-semibold text-primary border border-primary/30">
-                            Reading
-                          </span>
-                        )}
-                      </CardDescription>
-                    </div>
-                    <BookActions book={book} onBookUpdated={refreshBooks} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-6">
-                    <ProgressRing
-                      value={totalPagesRead}
-                      max={book.totalPages}
-                      size={90}
-                      completed={isCompleted}
-                    />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex justify-between text-xs md:text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">
-                          {totalPagesRead} / {book.totalPages} pages
-                        </span>
+              return (
+                <Card
+                  key={book.id}
+                  className={cn(
+                    "relative overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg",
+                    isCompleted 
+                      ? "border-emerald-500/40 bg-gradient-to-br from-emerald-500/5 to-transparent" 
+                      : "border-primary/10"
+                  )}
+                  onClick={() => handleBookClick(book)}
+                >
+                  {isCompleted && (
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full -mr-12 -mt-12" />
+                  )}
+                  <CardHeader className="relative">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <CardTitle className="line-clamp-2 text-base md:text-lg font-semibold">{book.title}</CardTitle>
+                        <CardDescription className="mt-1 text-xs md:text-sm">
+                          by {book.author}
+                          {isCompleted && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-emerald-500/20 to-emerald-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                              ✓ Completed
+                            </span>
+                          )}
+                          {!isCompleted && book.status === "reading" && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-primary/20 to-accent/20 px-2.5 py-0.5 text-[11px] font-semibold text-primary border border-primary/30">
+                              Reading
+                            </span>
+                          )}
+                        </CardDescription>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {isCompleted ? "100% complete" : `${Math.round(progress)}% complete`}
-                      </p>
+                      <div onClick={(e: MouseEvent) => e.stopPropagation()}>
+                        <BookActions book={book} onBookUpdated={refreshBooks} />
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-6 mb-4">
+                      <ProgressRing
+                        value={totalPagesRead}
+                        max={book.totalPages}
+                        size={90}
+                        completed={isCompleted}
+                      />
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between text-xs md:text-sm">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium">
+                            {totalPagesRead} / {book.totalPages} pages
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {isCompleted ? "100% complete" : `${Math.round(progress)}% complete`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Reading Statistics */}
+                    {!isCompleted && book.readingLogs.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 pt-3 border-t text-xs">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span>{readingDays} days</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <TrendingUp className="h-3 w-3" />
+                          <span>{avgPagesPerDay.toFixed(1)}/day</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick Log Button */}
+                    {!isCompleted && (
+                      <div className="mt-4 pt-4 border-t" onClick={(e: MouseEvent) => e.stopPropagation()}>
+                        <QuickLogButton
+                          bookId={book.id}
+                          bookTitle={book.title}
+                          onLogAdded={refreshBooks}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+
+          {/* Book Details Modal */}
+          <BookDetailsModal
+            book={selectedBook}
+            open={detailsModalOpen}
+            onOpenChange={setDetailsModalOpen}
+            onBookUpdated={refreshBooks}
+          />
+        </>
       )}
     </div>
   )

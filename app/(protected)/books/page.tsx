@@ -10,12 +10,22 @@ async function getBooks(userId: string) {
     orderBy: { createdAt: "desc" },
     include: {
       readingLogs: {
-        select: { pagesRead: true },
+        select: { pagesRead: true, date: true },
       },
     },
   })
 
-  return books
+  // Convert Date objects to strings for client component
+  return books.map(book => ({
+    ...book,
+    createdAt: book.createdAt.toISOString(),
+    updatedAt: book.updatedAt.toISOString(),
+    completedAt: book.completedAt?.toISOString() || null,
+    readingLogs: book.readingLogs.map(log => ({
+      pagesRead: log.pagesRead,
+      date: log.date.toISOString(),
+    })),
+  }))
 }
 
 export default async function BooksPage() {
