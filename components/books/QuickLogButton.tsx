@@ -23,7 +23,8 @@ interface QuickLogButtonProps {
 export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButtonProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [pages, setPages] = useState("")
+  const [startPage, setStartPage] = useState("")
+  const [endPage, setEndPage] = useState("")
   const [userTimezone, setUserTimezone] = useState<string>("Asia/Kolkata")
 
   // Fetch user timezone on mount
@@ -38,12 +39,26 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
       .catch(() => {})
   }, [])
 
-  const quickLog = async (pagesToLog?: number) => {
-    const pagesToSubmit = pagesToLog || parseInt(pages)
-    if (!pagesToSubmit || pagesToSubmit <= 0) {
-      alert("Please enter a valid number of pages")
+  const calculatePagesRead = (start: number, end: number): number => {
+    if (start <= 0 || end <= 0 || end < start) return 0
+    return end - start + 1
+  }
+
+  const quickLog = async (presetStart?: number, presetEnd?: number) => {
+    const start = presetStart || parseInt(startPage)
+    const end = presetEnd || parseInt(endPage)
+    
+    if (!start || !end || start <= 0 || end <= 0) {
+      alert("Please enter valid start and end page numbers")
       return
     }
+
+    if (end < start) {
+      alert("End page must be greater than or equal to start page")
+      return
+    }
+
+    const pagesToSubmit = calculatePagesRead(start, end)
 
     setLoading(true)
     try {
@@ -63,7 +78,8 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
       }
 
       setOpen(false)
-      setPages("")
+      setStartPage("")
+      setEndPage("")
       onLogAdded()
     } catch (error) {
       console.error("Error logging reading:", error)
@@ -73,6 +89,10 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
       setLoading(false)
     }
   }
+
+  const pagesRead = startPage && endPage 
+    ? calculatePagesRead(parseInt(startPage) || 0, parseInt(endPage) || 0)
+    : 0
 
   return (
     <>
@@ -94,45 +114,107 @@ export function QuickLogButton({ bookId, bookTitle, onLogAdded }: QuickLogButton
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pages">Pages Read</Label>
-              <Input
-                id="pages"
-                type="number"
-                value={pages}
-                onChange={(e) => setPages(e.target.value)}
-                placeholder="Enter pages read"
-                min="1"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    quickLog()
-                  }
-                }}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startPage">Start Page</Label>
+                <Input
+                  id="startPage"
+                  type="number"
+                  value={startPage}
+                  onChange={(e) => setStartPage(e.target.value)}
+                  placeholder="e.g., 10"
+                  min="1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && endPage) {
+                      quickLog()
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endPage">End Page</Label>
+                <Input
+                  id="endPage"
+                  type="number"
+                  value={endPage}
+                  onChange={(e) => setEndPage(e.target.value)}
+                  placeholder="e.g., 25"
+                  min="1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && startPage) {
+                      quickLog()
+                    }
+                  }}
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {[5, 10, 20, 50].map((pageCount) => (
-                <QuickButton
-                  key={pageCount}
-                  variant="outline"
-                  onClick={() => quickLog(pageCount)}
-                  disabled={loading}
-                >
-                  {pageCount}
-                </QuickButton>
-              ))}
+            {pagesRead > 0 && (
+              <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
+                Pages read: <span className="font-semibold text-foreground">{pagesRead}</span> pages
+              </div>
+            )}
+            {startPage && endPage && parseInt(endPage) < parseInt(startPage) && (
+              <div className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+                End page must be greater than or equal to start page
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <QuickButton
+                variant="outline"
+                onClick={() => {
+                  const start = parseInt(startPage) || 1
+                  quickLog(start, start + 4)
+                }}
+                disabled={loading || !startPage}
+              >
+                5 pages
+              </QuickButton>
+              <QuickButton
+                variant="outline"
+                onClick={() => {
+                  const start = parseInt(startPage) || 1
+                  quickLog(start, start + 9)
+                }}
+                disabled={loading || !startPage}
+              >
+                10 pages
+              </QuickButton>
+              <QuickButton
+                variant="outline"
+                onClick={() => {
+                  const start = parseInt(startPage) || 1
+                  quickLog(start, start + 19)
+                }}
+                disabled={loading || !startPage}
+              >
+                20 pages
+              </QuickButton>
+              <QuickButton
+                variant="outline"
+                onClick={() => {
+                  const start = parseInt(startPage) || 1
+                  quickLog(start, start + 49)
+                }}
+                disabled={loading || !startPage}
+              >
+                50 pages
+              </QuickButton>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={() => quickLog()}
-                disabled={loading || !pages}
+                disabled={loading || !startPage || !endPage || parseInt(endPage) < parseInt(startPage)}
                 className="flex-1"
               >
                 {loading ? "Logging..." : "Log Reading"}
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false)
+                  setStartPage("")
+                  setEndPage("")
+                }}
                 disabled={loading}
               >
                 Cancel
