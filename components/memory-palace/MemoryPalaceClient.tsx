@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { MemoryMap } from "./MemoryMap"
 
 interface BookMemory {
   id: string
@@ -252,50 +253,3 @@ export function MemoryPalaceClient() {
     </div>
   )
 }
-
-// Simple map component using Leaflet or a simple iframe
-function MemoryMap({ memories }: { memories: BookMemory[] }) {
-  // For now, we'll use a simple approach with Google Maps static API or Leaflet
-  // In production, you'd want to use a proper map library like Leaflet or Google Maps
-  
-  if (memories.length === 0) return null
-
-  // Calculate center point
-  const avgLat =
-    memories.reduce((sum, m) => sum + (m.latitude || 0), 0) / memories.length
-  const avgLng =
-    memories.reduce((sum, m) => sum + (m.longitude || 0), 0) / memories.length
-
-  // Create markers for each memory
-  const markers = memories
-    .map(
-      (m, i) =>
-        `&markers=color:red%7Clabel:${i + 1}%7C${m.latitude},${m.longitude}`
-    )
-    .join("")
-
-  // Using Google Maps Static API (you'll need an API key)
-  // For now, showing a placeholder
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-muted">
-      <div className="text-center space-y-2">
-        <Map className="h-12 w-12 mx-auto text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">
-          Map visualization coming soon
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {memories.length} location{memories.length !== 1 ? "s" : ""} found
-        </p>
-        {/* 
-        Uncomment when you have Google Maps API key:
-        <img
-          src={`https://maps.googleapis.com/maps/api/staticmap?center=${avgLat},${avgLng}&zoom=10&size=800x600&maptype=roadmap${markers}&key=YOUR_API_KEY`}
-          alt="Reading locations map"
-          className="w-full h-full object-cover"
-        />
-        */}
-      </div>
-    </div>
-  )
-}
-
