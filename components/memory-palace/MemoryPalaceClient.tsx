@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MapPin, Calendar, BookOpen, Map, List, Filter } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { MapPin, Calendar, BookOpen, Map, List, Filter, Search, X } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -12,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useSwipeable } from "react-swipeable"
 import { MemoryMap } from "./MemoryMap"
+import { VerticalTimeline } from "./VerticalTimeline"
+import { ReadingInsights } from "./ReadingInsights"
+import { MemoryCalendar } from "./MemoryCalendar"
 
 interface BookMemory {
   id: string
@@ -31,11 +36,43 @@ interface BookMemory {
   createdAt: string
 }
 
+interface SwipeableTabsProps {
+  viewMode: "timeline" | "map" | "calendar" | "stats"
+  onViewModeChange: (mode: "timeline" | "map" | "calendar" | "stats") => void
+  children: React.ReactNode
+}
+
+function SwipeableTabs({ viewMode, onViewModeChange, children }: SwipeableTabsProps) {
+  const tabs = ["timeline", "map", "calendar", "stats"] as const
+  const currentIndex = tabs.indexOf(viewMode)
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      const nextIndex = Math.min(currentIndex + 1, tabs.length - 1)
+      onViewModeChange(tabs[nextIndex])
+    },
+    onSwipedRight: () => {
+      const prevIndex = Math.max(currentIndex - 1, 0)
+      onViewModeChange(tabs[prevIndex])
+    },
+    preventScrollOnSwipe: true,
+    trackMouse: true, // Enable mouse swipe for desktop testing
+  })
+
+  return (
+    <div {...handlers} className="touch-pan-y">
+      {children}
+    </div>
+  )
+}
+
 export function MemoryPalaceClient() {
   const [memories, setMemories] = useState<BookMemory[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<"timeline" | "map">("timeline")
+  const [viewMode, setViewMode] = useState<"timeline" | "map" | "calendar" | "stats">("timeline")
   const [filter, setFilter] = useState<string>("all")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [dateRange, setDateRange] = useState<string>("all")
 
   useEffect(() => {
     fetchMemories()
@@ -57,9 +94,56 @@ export function MemoryPalaceClient() {
   }
 
   const filteredMemories = useMemo(() => {
-    if (filter === "all") return memories
-    return memories.filter((m) => m.lifeEvent === filter)
-  }, [memories, filter])
+    let filtered = memories
+
+    // Apply life event filter
+    if (filter !== "all") {
+      filtered = filtered.filter((m) => m.lifeEvent === filter)
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase()
+      filtered = filtered.filter((m) =>
+        m.book.title.toLowerCase().includes(term) ||
+        m.book.author.toLowerCase().includes(term) ||
+        (m.location && m.location.toLowerCase().includes(term)) ||
+        (m.memoryNote && m.memoryNote.toLowerCase().includes(term))
+      )
+    }
+
+    // Apply date range filter
+    if (dateRange !== "all") {
+      const now = new Date()
+      const startDate = new Date()
+
+      switch (dateRange) {
+        case "week":
+          startDate.setDate(now.getDate() - 7)
+          break
+        case "month":
+          startDate.setMonth(now.getMonth() - 1)
+          break
+        case "3months":
+          startDate.setMonth(now.getMonth() - 3)
+          break
+        case "6months":
+          startDate.setMonth(now.getMonth() - 6)
+          break
+        case "year":
+          startDate.setFullYear(now.getFullYear() - 1)
+          break
+      }
+
+      filtered = filtered.filter((m) => {
+        if (!m.memoryDate) return false
+        const memoryDate = new Date(m.memoryDate)
+        return memoryDate >= startDate && memoryDate <= now
+      })
+    }
+
+    return filtered
+  }, [memories, filter, searchTerm, dateRange])
 
   const sortedMemories = useMemo(() => {
     return [...filteredMemories].sort((a, b) => {
@@ -109,147 +193,131 @@ export function MemoryPalaceClient() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Reading Memory Palace</h1>
           <p className="text-muted-foreground">
             Your reading journey through places, times, and life events
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Memories</SelectItem>
-              {uniqueLifeEvents.map((event) => (
-                <SelectItem key={event} value={event}>
-                  {getLifeEventLabel(event)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by book title, author, location, or notes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10 w-full"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                onClick={() => setSearchTerm("")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-[160px] sm:w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Events</SelectItem>
+                {uniqueLifeEvents.map((event) => (
+                  <SelectItem key={event} value={event}>
+                    {getLifeEventLabel(event)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger className="w-[130px] sm:w-[140px]">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="week">Past Week</SelectItem>
+                <SelectItem value="month">Past Month</SelectItem>
+                <SelectItem value="3months">Past 3 Months</SelectItem>
+                <SelectItem value="6months">Past 6 Months</SelectItem>
+                <SelectItem value="year">Past Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "timeline" | "map")}>
-        <TabsList>
-          <TabsTrigger value="timeline">
-            <List className="h-4 w-4 mr-2" />
-            Timeline
-          </TabsTrigger>
-          <TabsTrigger value="map">
-            <Map className="h-4 w-4 mr-2" />
-            Map
-          </TabsTrigger>
-        </TabsList>
+      {/* Swipe gesture handler */}
+      <SwipeableTabs viewMode={viewMode} onViewModeChange={setViewMode}>
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "timeline" | "map" | "calendar" | "stats")}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="timeline" className="text-xs sm:text-sm">
+              <List className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Timeline</span>
+            </TabsTrigger>
+            <TabsTrigger value="map" className="text-xs sm:text-sm">
+              <Map className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Map</span>
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="text-xs sm:text-sm">
+              <Calendar className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Calendar</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs sm:text-sm">
+              <BookOpen className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Insights</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="timeline" className="mt-6">
-          {sortedMemories.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <MapPin className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No memories yet</h3>
-                <p className="text-muted-foreground text-center max-w-md">
-                  Start adding memories to your books to build your Reading Memory Palace.
-                  Go to any book's details and add a memory in the "Memories" tab.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {sortedMemories.map((memory) => (
-                <Card key={memory.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      {memory.photoUrl && (
-                        <div className="shrink-0">
-                          <img
-                            src={memory.photoUrl}
-                            alt="Memory"
-                            className="w-24 h-24 rounded-lg object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none"
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-lg">
-                              {memory.book.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              by {memory.book.author}
-                            </p>
-                          </div>
-                          {memory.lifeEvent && (
-                            <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
-                              {getLifeEventLabel(memory.lifeEvent)}
-                            </span>
-                          )}
-                        </div>
+          <TabsContent value="timeline" className="mt-6">
+            <VerticalTimeline memories={sortedMemories} />
+          </TabsContent>
 
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          {memory.location && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-4 w-4" />
-                              <span>{memory.location}</span>
-                            </div>
-                          )}
-                          {memory.memoryDate && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>
-                                {new Date(memory.memoryDate).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+          <TabsContent value="map" className="mt-6">
+            {memoriesWithLocation.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <Map className="h-16 w-16 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No locations yet</h3>
+                  <p className="text-muted-foreground text-center max-w-md">
+                    Add location information to your memories to see them on the map.
+                    Use the "Use My Location" button when adding memories.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reading Locations Map</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[400px] sm:h-[600px] rounded-lg border bg-muted">
+                    <MemoryMap memories={memoriesWithLocation} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-                        {memory.memoryNote && (
-                          <p className="text-sm whitespace-pre-wrap pt-2 border-t">
-                            {memory.memoryNote}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          <TabsContent value="calendar" className="mt-6">
+            <MemoryCalendar memories={filteredMemories} />
+          </TabsContent>
 
-        <TabsContent value="map" className="mt-6">
-          {memoriesWithLocation.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <Map className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No locations yet</h3>
-                <p className="text-muted-foreground text-center max-w-md">
-                  Add location information to your memories to see them on the map.
-                  Use the "Use My Location" button when adding memories.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Reading Locations Map</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[600px] rounded-lg border bg-muted">
-                  <MemoryMap memories={memoriesWithLocation} />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="stats" className="mt-6">
+            <ReadingInsights memories={filteredMemories} />
+          </TabsContent>
+        </Tabs>
+      </SwipeableTabs>
     </div>
   )
 }

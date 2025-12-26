@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { MapPin, Calendar, Image as ImageIcon, Search, Loader2 } from "lucide-react"
+import { PhotoUpload } from "@/components/memory-palace/PhotoUpload"
 
 interface BookMemory {
   id?: string
@@ -390,22 +391,15 @@ export function BookMemoryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="photoUrl">
+            <Label>
               <ImageIcon className="h-4 w-4 inline mr-2" />
-              Photo URL (Optional)
+              Photo (Optional)
             </Label>
-            <Input
-              id="photoUrl"
-              type="url"
+            <PhotoUpload
               value={formData.photoUrl || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, photoUrl: e.target.value })
-              }
-              placeholder="https://example.com/photo.jpg"
+              onChange={(url) => setFormData({ ...formData, photoUrl: url })}
+              disabled={loading}
             />
-            <p className="text-xs text-muted-foreground">
-              You can upload photos to a service like Imgur and paste the URL here
-            </p>
           </div>
 
           <div className="flex gap-2">
