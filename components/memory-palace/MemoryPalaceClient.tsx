@@ -184,7 +184,7 @@ export function MemoryPalaceClient() {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">Reading Memory Palace</h1>
+          <h1 className="text-3xl font-bold">Reading Timeline</h1>
           <p className="text-muted-foreground">Loading your reading memories...</p>
         </div>
       </div>
@@ -195,7 +195,7 @@ export function MemoryPalaceClient() {
     <div className="space-y-8">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Reading Memory Palace</h1>
+          <h1 className="text-3xl font-bold">Reading Timeline</h1>
           <p className="text-muted-foreground">
             Your reading journey through places, times, and life events
           </p>

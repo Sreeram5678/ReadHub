@@ -54,7 +54,7 @@ export function MobileNav({ userName }: MobileNavProps) {
             {[
               { href: "/dashboard", label: "Dashboard" },
               { href: "/books", label: "My Books" },
-              { href: "/memory-palace", label: "Memory Palace" },
+              { href: "/memory-palace", label: "Timeline" },
               { href: "/leaderboard", label: "Leaderboard" },
               { href: "/friends", label: "Friends" },
               { href: "/groups", label: "Groups" },

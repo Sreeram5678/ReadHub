@@ -103,7 +103,7 @@ export function VerticalTimeline({ memories }: VerticalTimelineProps) {
             <Calendar className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No memories yet</h3>
             <p className="text-muted-foreground text-center max-w-md">
-              Start adding memories to your books to build your Reading Memory Palace.
+              Start adding memories to your books to build your Reading Timeline.
               Go to any book's details and add a memory in the "Memories" tab.
             </p>
           </CardContent>

@@ -493,7 +493,7 @@ model BookLoan {
   @@index([userId, returnedAt])
 }
 
-// Reading Memory Palace - Associate books with places, times, and life events
+// Reading Timeline - Associate books with places, times, and life events
 model BookMemory {
   id          String   @id @default(cuid())
   userId      String
