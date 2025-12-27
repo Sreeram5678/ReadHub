@@ -7,17 +7,9 @@ import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { MobileNav } from "@/components/ui/mobile-nav"
+import { HubNavigation } from "@/components/layout/HubNavigation"
 import { cn } from "@/lib/utils"
 
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/books", label: "My Books" },
-  { href: "/journal", label: "Journal" },
-  { href: "/memory-palace", label: "Timeline" },
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/friends", label: "Friends" },
-  { href: "/groups", label: "Groups" },
-]
 
 interface TopNavProps {
   userName?: string
@@ -55,30 +47,7 @@ export function TopNav({ userName = "Reader" }: TopNavProps) {
           >
             ReadHub
           </Link>
-          <nav className="hidden items-center gap-3 overflow-x-auto scrollbar-hide md:flex lg:gap-4">
-            {NAV_LINKS.map((link) => {
-              const active =
-                pathname === link.href ||
-                (link.href !== "/dashboard" && pathname.startsWith(link.href))
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "group flex flex-col items-start whitespace-nowrap text-sm font-medium text-muted transition-colors",
-                    active
-                      ? "text-[color:var(--text)]"
-                      : "hover:text-[color:var(--text)]"
-                  )}
-                >
-                  {link.label}
-                  {active && (
-                    <span className="mt-1 block h-[2px] w-full rounded-full bg-[color:var(--accent)]" />
-                  )}
-                </Link>
-              )
-            })}
-          </nav>
+          <HubNavigation className="hidden md:flex" />
         </div>
 
         <div className="flex items-center gap-2">

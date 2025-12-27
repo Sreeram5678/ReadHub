@@ -48,7 +48,7 @@ export function GlobalLogReadingForm() {
   // Fetch books data
   const fetchBooks = useCallback(async () => {
     try {
-      const response = await fetch("/api/books?status=not_completed")
+      const response = await fetch("/api/books?status=reading")
       if (response.ok) {
         const data = await response.json()
         setBooks(data)

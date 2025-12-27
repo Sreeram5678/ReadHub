@@ -19,8 +19,8 @@ const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
     where: {
       userId,
-      // Exclude completed books from dashboard dropdowns (log form, timer, quick log)
-      status: { not: "completed" },
+      // Only include currently reading books for log forms
+      status: "reading",
     },
     select: {
       id: true,
