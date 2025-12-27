@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { getUserTimezone } from "@/lib/user-timezone"
-import { getTodayInTimezone } from "@/lib/timezone"
+import { getTodayInTimezone, formatDateInTimezone } from "@/lib/timezone"
 
 export async function GET(request: Request) {
   try {
@@ -56,10 +56,10 @@ export async function GET(request: Request) {
       },
     })
 
-    // Group by date and sum pages (similar to original logic)
+    // Group by date in user's timezone and sum pages
     const dateMap = new Map<string, number>()
     logs.forEach((log) => {
-      const dateKey = log.date.toISOString().split('T')[0] // YYYY-MM-DD format
+      const dateKey = formatDateInTimezone(log.date, userTimezone)
       const current = dateMap.get(dateKey) || 0
       dateMap.set(dateKey, current + log.pagesRead)
     })
