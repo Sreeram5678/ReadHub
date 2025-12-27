@@ -43,6 +43,7 @@ model User {
   readingJournals ReadingJournal[]
   vocabularies  Vocabulary[]
   bookLoans     BookLoan[]
+  bookMemories  BookMemory[]
   dashboardPreferences DashboardPreference?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -128,6 +129,7 @@ model Book {
   readingJournals ReadingJournal[]
   vocabularies Vocabulary[]
   bookLoans   BookLoan[]
+  bookMemories BookMemory[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -491,6 +493,29 @@ model BookLoan {
   @@index([userId, returnedAt])
 }
 
+// Reading Memory Palace - Associate books with places, times, and life events
+model BookMemory {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String
+  location    String?  // Where you read this book (e.g., "Coffee shop downtown", "Home library")
+  latitude    Float?   // Location latitude for map visualization
+  longitude   Float?   // Location longitude for map visualization
+  memoryNote  String?  // Life event or memory associated with reading this book
+  lifeEvent   String?  // Type of life event (e.g., "vacation", "graduation", "moving")
+  memoryDate  DateTime? // When this memory/association was created (when you read it)
+  photoUrl    String?  // Optional photo URL for the memory
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([userId, bookId])
+  @@index([latitude, longitude])
+  @@index([memoryDate])
+}
 
 // Dashboard widget preferences
 model DashboardPreference {

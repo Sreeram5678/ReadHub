@@ -6,6 +6,7 @@ Imagine a reading tracker that doesn't just count your pages—it becomes your l
 
 **What makes ReadHub magical:**
 - GPS-tracked reading sessions that remember where your favorite books came alive
+- Memory Palace that associates books with real-life moments and places
 - Social reading clubs with real-time chat and collaborative challenges
 - Advanced analytics into your reading patterns and preferences
 - Achievement system that celebrates every milestone in your literary journey
@@ -21,6 +22,7 @@ Imagine a reading tracker that doesn't just count your pages—it becomes your l
 ## 📸 **A Glimpse into the Magic**
 
 > **Dashboard Overview**: Your personalized reading command center with customizable widgets
+> **Memory Palace**: Associate books with real-world locations and life moments
 > **Social Reading Groups**: Connect with fellow book lovers in vibrant communities
 > **Reading Analytics**: Beautiful charts showing your literary journey
 > **Achievement System**: Celebrate every milestone in your reading adventure
@@ -57,6 +59,7 @@ Transform reading from a solitary activity into a multi-sensory adventure:
 
 - **GPS Reading Map**: See where your reading happens. From cozy coffee shops to mountain retreats, remember every location where stories came alive
 - **Reading Speed Test**: Challenge yourself to read faster. Track WPM improvements and compete with your personal bests
+- **Memory Palace**: Associate books with real-world locations and life events. "The café where I fell in love" or "That rainy weekend in Paris"—never forget the context of your favorite reads
 - **Reading Journal**: Capture your thoughts, emotions, and insights as you read. Build a personal literary memoir
 - **Chapter Notes**: Mark up your books like a scholar. Add notes, highlights, and annotations that grow with each reading
 - **Vocabulary Builder**: Build your literary lexicon. Save unfamiliar words, their definitions, and the context where you encountered them
@@ -208,6 +211,7 @@ Create your account, add your first book, and watch as your reading life transfo
 - **Chapter Notes**: Detailed annotations organized by chapter
 - **Vocabulary Building**: Save and review new words with context
 - **Quote Collection**: Curate meaningful passages with page references
+- **Memory Palace**: Associate books with real-world locations and life events
 
 #### 📊 Analytics & Insights
 - **Reading Heatmap**: Visualize your reading consistency over time
@@ -223,6 +227,9 @@ Create your account, add your first book, and watch as your reading life transfo
 ---
 
 ## What Makes ReadHub Extraordinary
+
+### Memory Palace
+Imagine walking through a palace where each room holds a cherished reading memory. Associate books with the park bench where you laughed out loud, the airport lounge during your dream vacation, or the cozy armchair on that rainy Sunday. ReadHub creates spatial memory links that make your reading experiences unforgettable and instantly recallable.
 
 ### Multi-dimensional Book Reviews
 Tired of simple 5-star ratings that don't capture the complexity of great books? Rate across multiple dimensions: plot craftsmanship, character depth, writing elegance, pacing perfection. Discover books that truly match your sophisticated tastes and get recommendations that understand your literary preferences.
@@ -258,6 +265,7 @@ readhub/
 │   │   ├── achievements/  # Achievement system
 │   │   ├── auth/          # Authentication endpoints
 │   │   ├── book-loans/    # Book lending tracker
+│   │   ├── book-memories/ # Memory Palace associations
 │   │   ├── book-reads/    # Re-reading tracking
 │   │   ├── books/         # Book CRUD operations
 │   │   ├── challenges/    # Challenge management
@@ -337,6 +345,7 @@ readhub/
 ### Advanced Features
 - **BookRead**: Re-reading tracking with separate ratings per read
 - **BookLoan**: Book lending management with borrower tracking
+- **BookMemory**: Memory Palace associations linking books to life events and locations
 - **Rating**: Multi-dimensional book ratings (plot, characters, writing, pacing)
 - **Achievement**: Milestone tracking for reading accomplishments
 - **Reminder**: Customizable reading reminders with scheduling
