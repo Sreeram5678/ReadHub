@@ -16,11 +16,10 @@ import { ChapterNotesList } from "./ChapterNotesList"
 import { ReadingJournalList } from "./ReadingJournalList"
 import { VocabularyList } from "./VocabularyList"
 import { ReReadTracking } from "./ReReadTracking"
-import { BookMemoryList } from "./BookMemoryList"
 import { BookTimeEstimate } from "./BookTimeEstimate"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookActions } from "./BookActions"
-import { Star, Calendar, BookOpen, Clock, TrendingUp, FileText, BookMarked, BookOpenCheck, MapPin } from "lucide-react"
+import { Star, Calendar, BookOpen, Clock, TrendingUp, FileText, BookMarked, BookOpenCheck } from "lucide-react"
 import { formatTimeEstimate } from "@/lib/reading-speed"
 
 interface Book {
@@ -283,10 +282,6 @@ export function BookDetailsModal({
                 <BookOpenCheck className="h-4 w-4 mr-1" />
                 Re-reads
               </TabsTrigger>
-              <TabsTrigger value="memories" className="text-xs">
-                <MapPin className="h-4 w-4 mr-1" />
-                Memories
-              </TabsTrigger>
             </TabsList>
             <TabsContent value="notes" className="mt-4">
               <ChapterNotesList bookId={book.id} />
@@ -350,9 +345,6 @@ export function BookDetailsModal({
             </TabsContent>
             <TabsContent value="rereads" className="mt-4">
               <ReReadTracking bookId={book.id} bookTitle={book.title} />
-            </TabsContent>
-            <TabsContent value="memories" className="mt-4">
-              <BookMemoryList bookId={book.id} bookTitle={book.title} />
             </TabsContent>
           </Tabs>
         </div>
