@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,6 +30,11 @@ interface VerticalTimelineProps {
 
 export function VerticalTimeline({ memories }: VerticalTimelineProps) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
+
+  // Reset failed images when memories change to allow new images to load
+  useEffect(() => {
+    setFailedImages(new Set())
+  }, [memories])
 
   const getLifeEventLabel = (event: string | null) => {
     const labels: Record<string, string> = {

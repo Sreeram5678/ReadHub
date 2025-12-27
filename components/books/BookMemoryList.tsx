@@ -40,6 +40,11 @@ export function BookMemoryList({ bookId, bookTitle }: BookMemoryListProps) {
     fetchMemories()
   }, [bookId])
 
+  // Reset failed images when memories change to allow new images to load
+  useEffect(() => {
+    setFailedImages(new Set())
+  }, [memories])
+
   const fetchMemories = async () => {
     try {
       const response = await fetch(`/api/book-memories?bookId=${bookId}`)

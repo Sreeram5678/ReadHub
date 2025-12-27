@@ -60,6 +60,11 @@ export function PublicProfileClient({ userId }: PublicProfileClientProps) {
     fetchProfile()
   }, [userId])
 
+  // Reset image error when profile changes to allow new images to load
+  useEffect(() => {
+    setImageError(false)
+  }, [profile?.user?.image])
+
   const fetchProfile = async () => {
     try {
       setLoading(true)
