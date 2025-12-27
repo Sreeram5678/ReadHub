@@ -261,33 +261,37 @@ export function BookDetailsModal({
 
           {/* Tabs for additional content */}
           <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-1">
-              <TabsTrigger value="notes" className="text-xs">
-                <FileText className="h-4 w-4 mr-1" />
-                Notes
-              </TabsTrigger>
-              <TabsTrigger value="rating" className="text-xs">
-                <Star className="h-4 w-4 mr-1" />
-                Rate
-              </TabsTrigger>
-              <TabsTrigger value="logs" className="text-xs">Logs</TabsTrigger>
-              <TabsTrigger value="journal" className="text-xs">
-                <BookOpen className="h-4 w-4 mr-1" />
-                Journal
-              </TabsTrigger>
-              <TabsTrigger value="vocabulary" className="text-xs">
-                <BookMarked className="h-4 w-4 mr-1" />
-                Words
-              </TabsTrigger>
-              <TabsTrigger value="rereads" className="text-xs">
-                <BookOpenCheck className="h-4 w-4 mr-1" />
-                Re-reads
-              </TabsTrigger>
-              <TabsTrigger value="memories" className="text-xs">
-                <MapPin className="h-4 w-4 mr-1" />
-                Memories
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+              <TabsList className="inline-flex w-full min-w-max md:grid md:grid-cols-7 gap-1 h-auto">
+                <TabsTrigger value="notes" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  <FileText className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                  Notes
+                </TabsTrigger>
+                <TabsTrigger value="rating" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  <Star className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                  Rate
+                </TabsTrigger>
+                <TabsTrigger value="logs" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  Logs
+                </TabsTrigger>
+                <TabsTrigger value="journal" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  <BookOpen className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                  Journal
+                </TabsTrigger>
+                <TabsTrigger value="vocabulary" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  <BookMarked className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                  Words
+                </TabsTrigger>
+                <TabsTrigger value="rereads" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  <BookOpenCheck className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                  Re-reads
+                </TabsTrigger>
+                <TabsTrigger value="memories" className="text-xs whitespace-nowrap flex-shrink-0 md:flex-shrink px-2 md:px-3">
+                  <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+                  Memories
+                </TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="notes" className="mt-4">
               <ChapterNotesList bookId={book.id} />
             </TabsContent>
