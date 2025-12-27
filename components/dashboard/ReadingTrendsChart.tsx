@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
@@ -27,20 +27,53 @@ interface ReadingTrend {
 }
 
 interface ReadingTrendsChartProps {
-  trends: ReadingTrend[]
-  onPeriodChange?: (period: string) => void
+  userId?: string // Optional for viewing other users' trends
 }
 
-export function ReadingTrendsChart({ trends, onPeriodChange }: ReadingTrendsChartProps) {
+export function ReadingTrendsChart({ userId }: ReadingTrendsChartProps) {
   const [period, setPeriod] = useState("30")
+  const [data, setData] = useState<ReadingTrend[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTrendsData()
+  }, [period, userId])
+
+  const fetchTrendsData = async () => {
+    setLoading(true)
+    try {
+      const url = userId
+        ? `/api/reading-trends?period=${period}&userId=${userId}`
+        : `/api/reading-trends?period=${period}`
+      const response = await fetch(url)
+      if (response.ok) {
+        const trendsData = await response.json()
+        setData(trendsData)
+      }
+    } catch (error) {
+      console.error("Failed to fetch reading trends data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handlePeriodChange = (newPeriod: string) => {
     setPeriod(newPeriod)
-    onPeriodChange?.(newPeriod)
   }
+
+  const getPeriodDescription = (selectedPeriod: string) => {
+    switch (selectedPeriod) {
+      case "7": return "Your reading activity over the last 7 days"
+      case "30": return "Your reading activity over the last 30 days"
+      case "90": return "Your reading activity over the last 90 days"
+      case "365": return "Your reading activity over the last year"
+      default: return "Your reading activity over the last 30 days"
+    }
+  }
+
   // Memoize chart data processing to avoid recalculating on every render
   const processedData = useMemo(() => {
-    return trends.reduce((acc, log) => {
+    return data.reduce((acc, log) => {
       const date = new Date(log.date).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -53,14 +86,66 @@ export function ReadingTrendsChart({ trends, onPeriodChange }: ReadingTrendsChar
       }
       return acc
     }, [] as { date: string; pages: number }[])
-  }, [trends])
+  }, [data])
+
+  if (loading) {
+    return (
+      <Card className="h-full flex flex-col">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Reading Trends</CardTitle>
+              <CardDescription>{getPeriodDescription(period)}</CardDescription>
+            </div>
+            <Select value={period} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="365">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+              <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Loading trends...</h3>
+            <p className="text-muted-foreground text-center max-w-md">
+              Fetching your reading data for the selected period.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (processedData.length === 0) {
     return (
       <Card className="h-full flex flex-col">
         <CardHeader>
-          <CardTitle>Reading Trends</CardTitle>
-          <CardDescription>Your reading activity over the last 30 days</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Reading Trends</CardTitle>
+              <CardDescription>{getPeriodDescription(period)}</CardDescription>
+            </div>
+            <Select value={period} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="365">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="flex-1">
           <div className="flex flex-col items-center justify-center py-12">
@@ -182,16 +267,6 @@ export function ReadingTrendsChart({ trends, onPeriodChange }: ReadingTrendsChar
       },
     ],
   };
-
-  const getPeriodDescription = (selectedPeriod: string) => {
-    switch (selectedPeriod) {
-      case "7": return "Your reading activity over the last 7 days"
-      case "30": return "Your reading activity over the last 30 days"
-      case "90": return "Your reading activity over the last 90 days"
-      case "365": return "Your reading activity over the last year"
-      default: return "Your reading activity over the last 30 days"
-    }
-  }
 
   return (
     <Card className="h-full flex flex-col">

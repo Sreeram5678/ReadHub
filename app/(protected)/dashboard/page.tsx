@@ -8,10 +8,6 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
-interface DashboardPageProps {
-  searchParams: Promise<{ period?: string }>
-}
-
 // Revalidate every 5 minutes to balance freshness with performance
 export const revalidate = 300;
 
@@ -37,8 +33,7 @@ const getBooks = cache(async (userId: string) => {
   })
 })
 
-export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const resolvedSearchParams = await searchParams
+export default async function DashboardPage() {
   const session = await auth()
 
   if (!session?.user?.id) {
@@ -48,11 +43,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const userId = session.user.id
   const userTimezone = await getUserTimezone(userId)
 
-  // Get period from search params, default to 30 days
-  const period = resolvedSearchParams.period || "30"
-  const daysBack = period === "all" ? 365 : parseInt(period)
-  const trendDaysAgo = new Date(now - daysBack * 24 * 60 * 60 * 1000)
-
   // Optimize: Combine related queries and reduce database round trips
   const [
     booksData,
@@ -60,7 +50,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     todayPages,
     streakLogs,
     recentLogs,
-    trendLogs,
     readingGoals,
     booksForForm,
     dashboardPreferences,
@@ -105,18 +94,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       include: { book: { select: { title: true } } },
       orderBy: { date: "desc" },
       take: 5,
-    }),
-    // Trend data for charts - dynamic period
-    db.readingLog.findMany({
-      where: {
-        userId,
-        date: { gte: trendDaysAgo },
-      },
-      select: {
-        date: true,
-        pagesRead: true,
-      },
-      orderBy: { date: "asc" },
     }),
     // Active reading goals
     db.readingGoal.findMany({
@@ -183,7 +160,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         readingStreak={readingStreak}
         daysReadThisWeek={daysReadThisWeek}
         daysReadThisMonth={daysReadThisMonth}
-        readingTrends={trendLogs}
         readingGoals={readingGoals}
       />
     </Suspense>

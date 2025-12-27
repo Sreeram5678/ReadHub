@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useCallback } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useMemo, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
 import { ReadingGoals } from "./ReadingGoals"
@@ -83,10 +83,6 @@ interface ReadingGoal {
   endDate: Date
 }
 
-interface ReadingTrend {
-  date: Date
-  pagesRead: number
-}
 
 interface DashboardProps {
   totalBooks: number
@@ -100,7 +96,6 @@ interface DashboardProps {
   readingStreak: number
   daysReadThisWeek: number
   daysReadThisMonth: number
-  readingTrends: ReadingTrend[]
   readingGoals: ReadingGoal[]
 }
 
@@ -116,40 +111,44 @@ export function DashboardClient({
   readingStreak,
   daysReadThisWeek,
   daysReadThisMonth,
-  readingTrends,
   readingGoals,
 }: DashboardProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
+
+  const [weeklyPages, setWeeklyPages] = useState(0)
+  const [monthlyPages, setMonthlyPages] = useState(0)
 
   const refreshData = () => {
     router.refresh()
   }
 
-  const handlePeriodChange = useCallback((period: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('period', period)
-    router.push(`/dashboard?${params.toString()}`)
-  }, [router, searchParams])
+  // Fetch weekly and monthly page counts
+  useEffect(() => {
+    const fetchPageCounts = async () => {
+      try {
+        // Fetch data for current week and month
+        const [weeklyResponse, monthlyResponse] = await Promise.all([
+          fetch('/api/reading-trends?period=7'),
+          fetch('/api/reading-trends?period=30')
+        ])
 
-  const { weeklyPages, monthlyPages } = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const weekStart = new Date(today)
-    weekStart.setDate(today.getDate() - today.getDay())
-    weekStart.setHours(0, 0, 0, 0)
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+        if (weeklyResponse.ok && monthlyResponse.ok) {
+          const weeklyData = await weeklyResponse.json()
+          const monthlyData = await monthlyResponse.json()
 
-    const weekly = readingTrends
-      .filter((t) => new Date(t.date) >= weekStart)
-      .reduce((sum, t) => sum + t.pagesRead, 0)
+          const weeklyTotal = weeklyData.reduce((sum: number, item: any) => sum + item.pagesRead, 0)
+          const monthlyTotal = monthlyData.reduce((sum: number, item: any) => sum + item.pagesRead, 0)
 
-    const monthly = readingTrends
-      .filter((t) => new Date(t.date) >= monthStart)
-      .reduce((sum, t) => sum + t.pagesRead, 0)
+          setWeeklyPages(weeklyTotal)
+          setMonthlyPages(monthlyTotal)
+        }
+      } catch (error) {
+        console.error("Failed to fetch page counts:", error)
+      }
+    }
 
-    return { weeklyPages: weekly, monthlyPages: monthly }
-  }, [readingTrends])
+    fetchPageCounts()
+  }, [])
 
   return (
     <div className="space-y-10">
@@ -165,7 +164,7 @@ export function DashboardClient({
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="min-h-[400px]">
-            <ReadingTrendsChartLazy trends={readingTrends} onPeriodChange={handlePeriodChange} />
+            <ReadingTrendsChartLazy />
           </div>
           <div className="min-h-[400px]">
             <QuickReadingLog books={books} onLogAdded={refreshData} />
