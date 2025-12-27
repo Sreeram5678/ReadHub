@@ -1,7 +1,14 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   LineChart,
   Line,
@@ -21,9 +28,16 @@ interface ReadingTrend {
 
 interface ReadingTrendsChartProps {
   trends: ReadingTrend[]
+  onPeriodChange?: (period: string) => void
 }
 
-export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
+export function ReadingTrendsChart({ trends, onPeriodChange }: ReadingTrendsChartProps) {
+  const [period, setPeriod] = useState("30")
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod)
+    onPeriodChange?.(newPeriod)
+  }
   // Memoize chart data processing to avoid recalculating on every render
   const processedData = useMemo(() => {
     return trends.reduce((acc, log) => {
@@ -169,11 +183,36 @@ export function ReadingTrendsChart({ trends }: ReadingTrendsChartProps) {
     ],
   };
 
+  const getPeriodDescription = (selectedPeriod: string) => {
+    switch (selectedPeriod) {
+      case "7": return "Your reading activity over the last 7 days"
+      case "30": return "Your reading activity over the last 30 days"
+      case "90": return "Your reading activity over the last 90 days"
+      case "365": return "Your reading activity over the last year"
+      default: return "Your reading activity over the last 30 days"
+    }
+  }
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle>Reading Trends</CardTitle>
-        <CardDescription>Your reading activity over the last 30 days</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Reading Trends</CardTitle>
+            <CardDescription>{getPeriodDescription(period)}</CardDescription>
+          </div>
+          <Select value={period} onValueChange={handlePeriodChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="365">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="flex-1">
         <ResponsiveContainer width="100%" height={300}>

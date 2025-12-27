@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useMemo, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { LogReadingForm } from "@/components/reading/LogReadingForm"
 import { ReadingGoals } from "./ReadingGoals"
@@ -120,9 +120,17 @@ export function DashboardClient({
   readingGoals,
 }: DashboardProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
   const refreshData = () => {
     router.refresh()
   }
+
+  const handlePeriodChange = useCallback((period: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('period', period)
+    router.push(`/dashboard?${params.toString()}`)
+  }, [router, searchParams])
 
   const { weeklyPages, monthlyPages } = useMemo(() => {
     const today = new Date()
@@ -157,7 +165,7 @@ export function DashboardClient({
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="min-h-[400px]">
-            <ReadingTrendsChartLazy trends={readingTrends} />
+            <ReadingTrendsChartLazy trends={readingTrends} onPeriodChange={handlePeriodChange} />
           </div>
           <div className="min-h-[400px]">
             <QuickReadingLog books={books} onLogAdded={refreshData} />

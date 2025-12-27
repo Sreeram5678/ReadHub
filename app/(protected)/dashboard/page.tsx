@@ -8,6 +8,10 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
+interface DashboardPageProps {
+  searchParams: Promise<{ period?: string }>
+}
+
 // Revalidate every 5 minutes to balance freshness with performance
 export const revalidate = 300;
 
@@ -17,7 +21,7 @@ const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
 
 const getBooks = cache(async (userId: string) => {
   return await db.book.findMany({
-    where: { 
+    where: {
       userId,
       // Exclude completed books from dashboard dropdowns (log form, timer, quick log)
       status: { not: "completed" },
@@ -33,7 +37,8 @@ const getBooks = cache(async (userId: string) => {
   })
 })
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const resolvedSearchParams = await searchParams
   const session = await auth()
 
   if (!session?.user?.id) {
@@ -42,6 +47,11 @@ export default async function DashboardPage() {
 
   const userId = session.user.id
   const userTimezone = await getUserTimezone(userId)
+
+  // Get period from search params, default to 30 days
+  const period = resolvedSearchParams.period || "30"
+  const daysBack = period === "all" ? 365 : parseInt(period)
+  const trendDaysAgo = new Date(now - daysBack * 24 * 60 * 60 * 1000)
 
   // Optimize: Combine related queries and reduce database round trips
   const [
@@ -96,11 +106,11 @@ export default async function DashboardPage() {
       orderBy: { date: "desc" },
       take: 5,
     }),
-    // Trend data for charts - last 30 days only
+    // Trend data for charts - dynamic period
     db.readingLog.findMany({
       where: {
         userId,
-        date: { gte: thirtyDaysAgo },
+        date: { gte: trendDaysAgo },
       },
       select: {
         date: true,
