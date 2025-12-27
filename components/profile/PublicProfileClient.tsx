@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Loader2, UserPlus, Check, X, Trophy, BookOpen, Flame, TrendingUp } from "lucide-react"
@@ -53,6 +54,7 @@ export function PublicProfileClient({ userId }: PublicProfileClientProps) {
   const [profile, setProfile] = useState<PublicProfileData | null>(null)
   const [friendActionLoading, setFriendActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
     fetchProfile()
@@ -141,12 +143,15 @@ export function PublicProfileClient({ userId }: PublicProfileClientProps) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[color:var(--accent)]/12 text-2xl font-semibold text-[color:var(--accent)]">
-            {profile.user.image ? (
-              <img
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[color:var(--accent)]/12 text-2xl font-semibold text-[color:var(--accent)] relative overflow-hidden">
+            {profile.user.image && !imageError ? (
+              <Image
                 src={profile.user.image}
                 alt={profile.user.name || "User"}
-                className="h-full w-full rounded-full object-cover"
+                fill
+                className="object-cover"
+                sizes="80px"
+                onError={() => setImageError(true)}
               />
             ) : (
               initials || "U"

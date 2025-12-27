@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
-import { clearUserTimezoneCache } from "@/lib/user-timezone"
 
 export async function GET() {
   try {
@@ -87,10 +86,8 @@ export async function PUT(request: Request) {
 
     const { password, emailVerified, ...userData } = updatedUser as any
 
-    // Clear timezone cache for this user
-    if (timezone) {
-      clearUserTimezoneCache(session.user.id)
-    }
+    // Note: getUserTimezone now uses React cache() which automatically handles request-level caching
+    // No manual cache clearing needed
 
     return NextResponse.json({
       id: userData.id,

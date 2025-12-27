@@ -3,14 +3,20 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { BooksPageClient } from "@/components/books/BooksPageClient"
 
+// Revalidate every 60 seconds to balance freshness with performance
+export const revalidate = 60
+
 async function getBooks(userId: string) {
   // Fetch books with logs and ratings in a single query using include (fixes N+1 problem)
+  // Limit reading logs to recent ones to reduce payload size
   const books = await db.book.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
       readingLogs: {
         select: { pagesRead: true, date: true },
+        orderBy: { date: "desc" },
+        take: 50, // Limit to 50 most recent logs per book
       },
       ratings: {
         where: { userId },

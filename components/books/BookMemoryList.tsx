@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, Edit, Trash2, MapPin, Calendar, Image as ImageIcon } from "lucide-react"
@@ -33,6 +34,7 @@ export function BookMemoryList({ bookId, bookTitle }: BookMemoryListProps) {
   const [open, setOpen] = useState(false)
   const [editingMemory, setEditingMemory] = useState<BookMemory | null>(null)
   const [loading, setLoading] = useState(false)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchMemories()
@@ -141,14 +143,16 @@ export function BookMemoryList({ bookId, bookTitle }: BookMemoryListProps) {
                         {memory.memoryNote}
                       </p>
                     )}
-                    {memory.photoUrl && (
-                      <div className="mt-3">
-                        <img
+                    {memory.photoUrl && !failedImages.has(memory.id) && (
+                      <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden">
+                        <Image
                           src={memory.photoUrl}
                           alt="Memory"
-                          className="rounded-lg max-w-full h-auto max-h-48 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          onError={() => {
+                            setFailedImages(prev => new Set(prev).add(memory.id))
                           }}
                         />
                       </div>

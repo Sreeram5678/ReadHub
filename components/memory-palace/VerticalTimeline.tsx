@@ -1,5 +1,7 @@
 "use client"
 
+import { useMemo, useState } from "react"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Calendar, BookOpen } from "lucide-react"
@@ -27,6 +29,8 @@ interface VerticalTimelineProps {
 }
 
 export function VerticalTimeline({ memories }: VerticalTimelineProps) {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
+
   const getLifeEventLabel = (event: string | null) => {
     const labels: Record<string, string> = {
       vacation: "Vacation",
@@ -138,14 +142,16 @@ export function VerticalTimeline({ memories }: VerticalTimelineProps) {
                   <Card key={memory.id} className="hover:shadow-md transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary">
                     <CardContent className="p-6">
                       <div className="flex gap-4">
-                        {memory.photoUrl && (
-                          <div className="shrink-0">
-                            <img
+                        {memory.photoUrl && !failedImages.has(memory.id) && (
+                          <div className="shrink-0 relative w-20 h-20 rounded-lg overflow-hidden ring-2 ring-background shadow-sm">
+                            <Image
                               src={memory.photoUrl}
                               alt="Memory"
-                              className="w-20 h-20 rounded-lg object-cover ring-2 ring-background shadow-sm"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none"
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                              onError={() => {
+                                setFailedImages(prev => new Set(prev).add(memory.id))
                               }}
                             />
                           </div>
