@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
@@ -43,11 +43,7 @@ export function ReadingTrendsChart({ userId }: ReadingTrendsChartProps) {
     return () => clearTimeout(timer)
   }, [period])
 
-  useEffect(() => {
-    fetchTrendsData()
-  }, [debouncedPeriod, userId])
-
-  const fetchTrendsData = async () => {
+  const fetchTrendsData = useCallback(async () => {
     setLoading(true)
     try {
       const url = userId
@@ -63,7 +59,11 @@ export function ReadingTrendsChart({ userId }: ReadingTrendsChartProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [debouncedPeriod, userId])
+
+  useEffect(() => {
+    fetchTrendsData()
+  }, [fetchTrendsData])
 
   const handlePeriodChange = (newPeriod: string) => {
     setPeriod(newPeriod)

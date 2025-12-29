@@ -14,20 +14,6 @@ import { StatCard } from "@/components/ui/StatCard"
 import { BookOpen, BookOpenCheck, Calendar, Flame, Target } from "lucide-react"
 import dynamic from "next/dynamic"
 
-// Performance optimization: Preload critical components
-useEffect(() => {
-  // Preload critical API routes
-  const preloadRoutes = async () => {
-    try {
-      // Preload reading trends data
-      fetch('/api/reading-trends?period=30').catch(() => {})
-    } catch (error) {
-      // Ignore preload errors
-    }
-  }
-  preloadRoutes()
-}, [])
-
 const ReadingTrendsChartLazy = dynamic(
   () => import("./ReadingTrendsChart").then((mod) => ({ default: mod.ReadingTrendsChart })),
   {
@@ -136,6 +122,19 @@ export function DashboardClient({
   const refreshData = () => {
     router.refresh()
   }
+
+  // Performance optimization: Preload critical API routes
+  useEffect(() => {
+    const preloadRoutes = async () => {
+      try {
+        // Preload reading trends data
+        fetch('/api/reading-trends?period=30').catch(() => {})
+      } catch (error) {
+        // Ignore preload errors
+      }
+    }
+    preloadRoutes()
+  }, [])
 
   return (
     <div className="space-y-10">
