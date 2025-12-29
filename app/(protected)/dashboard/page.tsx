@@ -48,6 +48,8 @@ export default async function DashboardPage() {
     booksData,
     readingStats,
     todayPages,
+    weeklyPagesData,
+    monthlyPagesData,
     streakLogs,
     recentLogs,
     readingGoals,
@@ -75,6 +77,28 @@ export default async function DashboardPage() {
         where: {
           userId,
           date: { gte: today },
+        },
+        _sum: { pagesRead: true },
+      })
+    })(),
+    // Weekly pages query
+    (async () => {
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
+      return db.readingLog.aggregate({
+        where: {
+          userId,
+          date: { gte: weekAgo },
+        },
+        _sum: { pagesRead: true },
+      })
+    })(),
+    // Monthly pages query
+    (async () => {
+      const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
+      return db.readingLog.aggregate({
+        where: {
+          userId,
+          date: { gte: monthAgo },
         },
         _sum: { pagesRead: true },
       })
@@ -154,6 +178,8 @@ export default async function DashboardPage() {
         completionPercentage={completionPercentage}
         totalPagesRead={totalPagesRead}
         todayPages={todayPages._sum.pagesRead || 0}
+        weeklyPages={weeklyPagesData._sum.pagesRead || 0}
+        monthlyPages={monthlyPagesData._sum.pagesRead || 0}
         recentLogs={recentLogs}
         books={booksForForm}
         userName={session.user?.name || session.user?.email || "User"}

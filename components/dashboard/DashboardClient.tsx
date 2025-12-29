@@ -90,6 +90,8 @@ interface DashboardProps {
   completionPercentage: number
   totalPagesRead: number
   todayPages: number
+  weeklyPages: number
+  monthlyPages: number
   recentLogs: ReadingLog[]
   books: Book[]
   userName: string
@@ -105,6 +107,8 @@ export function DashboardClient({
   completionPercentage,
   totalPagesRead,
   todayPages,
+  weeklyPages,
+  monthlyPages,
   recentLogs,
   books,
   userName,
@@ -115,40 +119,9 @@ export function DashboardClient({
 }: DashboardProps) {
   const router = useRouter()
 
-  const [weeklyPages, setWeeklyPages] = useState(0)
-  const [monthlyPages, setMonthlyPages] = useState(0)
-
   const refreshData = () => {
     router.refresh()
   }
-
-  // Fetch weekly and monthly page counts
-  useEffect(() => {
-    const fetchPageCounts = async () => {
-      try {
-        // Fetch data for current week and month
-        const [weeklyResponse, monthlyResponse] = await Promise.all([
-          fetch('/api/reading-trends?period=7'),
-          fetch('/api/reading-trends?period=30')
-        ])
-
-        if (weeklyResponse.ok && monthlyResponse.ok) {
-          const weeklyData = await weeklyResponse.json()
-          const monthlyData = await monthlyResponse.json()
-
-          const weeklyTotal = weeklyData.reduce((sum: number, item: any) => sum + item.pagesRead, 0)
-          const monthlyTotal = monthlyData.reduce((sum: number, item: any) => sum + item.pagesRead, 0)
-
-          setWeeklyPages(weeklyTotal)
-          setMonthlyPages(monthlyTotal)
-        }
-      } catch (error) {
-        console.error("Failed to fetch page counts:", error)
-      }
-    }
-
-    fetchPageCounts()
-  }, [])
 
   return (
     <div className="space-y-10">

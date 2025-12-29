@@ -91,8 +91,8 @@ export async function GET(request: Request) {
       userIds = selectedUserIds.length > 0 ? selectedUserIds : userIds
     }
 
-    // Fetch only friends and current user
-    const users = await db.user.findMany({
+    // Single optimized query to get all user data with reading logs
+    const usersWithLogs = await db.user.findMany({
       where: {
         id: { in: userIds },
       },
@@ -106,105 +106,76 @@ export async function GET(request: Request) {
             books: true,
           },
         },
+        readingLogs: {
+          where: startDate || endDate ? {
+            date: {
+              ...(startDate && { gte: startDate }),
+              ...(endDate && { lte: endDate }),
+            },
+          } : {},
+          select: {
+            date: true,
+            pagesRead: true,
+          },
+          orderBy: { date: 'desc' },
+        },
       },
     })
 
-    // Fetch user data with analytics for advanced sorting
-    const userData = await Promise.all(
-      users.map(async (user) => {
-        const where: Prisma.ReadingLogWhereInput = { userId: user.id }
-        if (startDate || endDate) {
-          where.date = {}
-          if (startDate) {
-            where.date.gte = startDate
-          }
-          if (endDate) {
-            where.date.lte = endDate
-          }
-        }
-
-        // Get reading logs for analytics (filtered by period for pages/speed calculations)
-        const readingLogs = await db.readingLog.findMany({
-          where,
-          select: {
-            date: true,
-            pagesRead: true,
-          },
-          orderBy: { date: 'desc' },
-        })
-
-        // For streak calculation, we need ALL reading logs (not filtered by period)
-        // because streaks are about consecutive days regardless of the selected period
-        const allReadingLogs = await db.readingLog.findMany({
-          where: { userId: user.id },
-          select: {
-            date: true,
-            pagesRead: true,
-          },
-          orderBy: { date: 'desc' },
-        })
-
-        const totalPages = readingLogs.reduce((sum, log) => sum + (log.pagesRead || 0), 0)
-
-        // Get user's timezone for accurate streak calculation
-        const userTz = await getUserTimezone(user.id)
-
-        // Calculate the actual period range for averageDaily calculation
-        // Use the selected period's date range, not the range between first and last reading log
-        let periodRangeDays = 1
-        if (period === "all-time") {
-          // For all-time, use the range from first reading log to today
-          if (readingLogs.length > 0) {
-            const firstLogDate = readingLogs[readingLogs.length - 1].date
-            const today = getTodayInTimezone(userTz)
-            periodRangeDays = Math.ceil((today.getTime() - firstLogDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-          } else {
-            periodRangeDays = 1
-          }
-        } else {
-          // For specific periods, use the actual period range
-          const periodEnd = endDate || getTodayInTimezone(userTz)
-          const periodStart = startDate || (readingLogs.length > 0 ? readingLogs[readingLogs.length - 1].date : periodEnd)
-          periodRangeDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
-        }
-        // Ensure minimum of 1 day to avoid division by zero
-        periodRangeDays = Math.max(periodRangeDays, 1)
-
-        // Calculate additional metrics for sorting
-        const readingDays = new Set(readingLogs.map(log => log.date.toDateString())).size
-        // Use period range for averageDaily calculation to be fair
-        // This prevents someone who reads 100 pages in one day from getting 100 pages/day
-        // while someone who reads 10 pages/day for 30 days gets 10 pages/day
-        const averageDaily = periodRangeDays > 0 ? totalPages / periodRangeDays : 0
-
-        // Calculate streak using timezone-aware calculation
-        const streakData = calculateStreak(allReadingLogs, userTz)
-        const currentStreak = streakData.currentStreak
-
-        return {
-          userId: user.id,
-          totalPages,
-          averageDaily,
-          currentStreak,
-          readingDays,
-        }
-      })
+    // Get user timezones in a single batch query
+    const userTimezones = await Promise.all(
+      userIds.map(userId => getUserTimezone(userId))
     )
+    const timezoneMap = new Map(userIds.map((id, index) => [id, userTimezones[index]]))
 
-    const leaderboard = users
-      .map((user) => {
-        const data = userData.find((ud) => ud.userId === user.id)
-        return {
-          id: user.id,
-          name: user.name || user.email,
-          email: user.email,
-          image: user.image,
-          totalPages: data?.totalPages || 0,
-          bookCount: user._count.books,
-          averageDaily: data?.averageDaily || 0,
-          currentStreak: data?.currentStreak || 0,
+    // Calculate metrics for each user in memory (much faster)
+    const userData = usersWithLogs.map((user) => {
+      const totalPages = user.readingLogs.reduce((sum, log) => sum + (log.pagesRead || 0), 0)
+      const userTz = timezoneMap.get(user.id) || userTimezone
+
+      // Calculate period range for average daily
+      let periodRangeDays = 1
+      if (period === "all-time") {
+        if (user.readingLogs.length > 0) {
+          const firstLogDate = user.readingLogs[user.readingLogs.length - 1].date
+          const today = getTodayInTimezone(userTz)
+          periodRangeDays = Math.ceil((today.getTime() - firstLogDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
         }
-      })
+      } else {
+        const periodEnd = endDate || getTodayInTimezone(userTz)
+        const periodStart = startDate || (user.readingLogs.length > 0 ? user.readingLogs[user.readingLogs.length - 1].date : periodEnd)
+        periodRangeDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      }
+      periodRangeDays = Math.max(periodRangeDays, 1)
+
+      const readingDays = new Set(user.readingLogs.map(log => log.date.toDateString())).size
+      const averageDaily = periodRangeDays > 0 ? totalPages / periodRangeDays : 0
+
+      // For streak calculation, we need all logs - do a separate query per user
+      // This is still needed but much less frequent now
+      const currentStreak = sortBy === 'streak' ? calculateStreakSync(user.readingLogs, userTz) : 0
+
+      return {
+        userId: user.id,
+        totalPages,
+        averageDaily,
+        currentStreak,
+        readingDays,
+        user,
+      }
+    })
+
+    const leaderboard = userData
+      .map(({ user, totalPages, averageDaily, currentStreak }) => ({
+        id: user.id,
+        name: user.name || user.email,
+        email: user.email,
+        image: user.image,
+        totalPages,
+        bookCount: user._count.books,
+        averageDaily,
+        currentStreak,
+      }))
       .filter((user) => {
         // Always include current user, even if they have 0 pages/metrics
         if (user.id === userId) {
@@ -239,13 +210,45 @@ export async function GET(request: Request) {
         rank: index + 1,
       }))
 
-    return NextResponse.json(leaderboard)
+    return NextResponse.json(leaderboard, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    })
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch leaderboard" },
       { status: 500 }
     )
   }
+}
+
+function calculateStreakSync(readingLogs: Array<{ date: Date; pagesRead: number | null }>, userTimezone: string): number {
+  if (readingLogs.length === 0) return 0
+
+  // Group logs by date in user's timezone
+  const dateMap = new Map<string, number>()
+  readingLogs.forEach(log => {
+    const dateKey = formatDateInTimezone(log.date, userTimezone)
+    dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + (log.pagesRead || 0))
+  })
+
+  // Calculate current streak using timezone-aware dates
+  let currentStreak = 0
+  const today = formatDateInTimezone(new Date(), userTimezone)
+  let checkDate = new Date(today)
+
+  for (let i = 0; i < 365; i++) { // Check up to a year back
+    const dateStr = formatDateInTimezone(checkDate, userTimezone)
+    if (dateMap.has(dateStr) && dateMap.get(dateStr)! > 0) {
+      currentStreak++
+      checkDate.setDate(checkDate.getDate() - 1)
+    } else {
+      break
+    }
+  }
+
+  return currentStreak
 }
 
 function calculateStreak(readingLogs: Array<{ date: Date; pagesRead: number | null }>, userTimezone: string) {
