@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "prisma generate && next build --webpack",
+    "build:analyze": "ANALYZE=true prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"

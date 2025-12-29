@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '2mb',
     },
     optimizeCss: true,
+    scrollRestoration: true,
     // Optimize package imports to reduce bundle size
     optimizePackageImports: ['lucide-react', '@radix-ui/react-select', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
   },
@@ -24,6 +25,7 @@ const nextConfig: NextConfig = {
   // Optimize images
   images: {
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // 1 year cache
     remotePatterns: [
       {
         protocol: 'https',
@@ -45,9 +47,8 @@ const nextConfig: NextConfig = {
   },
   // Enable compression
   compress: true,
-  // Optimize bundle
+  // Optimize bundle with chunk splitting
   webpack: (config, { dev, isServer }) => {
-    // Optimize bundle size in production
     if (!dev && !isServer) {
       config.optimization.splitChunks.cacheGroups = {
         ...config.optimization.splitChunks.cacheGroups,
@@ -56,6 +57,19 @@ const nextConfig: NextConfig = {
           name: 'vendors',
           chunks: 'all',
           priority: 10,
+        },
+        // Separate heavy libraries for better caching
+        recharts: {
+          test: /[\\/]node_modules[\\/]recharts[\\/]/,
+          name: 'recharts',
+          chunks: 'all',
+          priority: 20,
+        },
+        framer: {
+          test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+          name: 'framer-motion',
+          chunks: 'all',
+          priority: 20,
         },
       };
     }

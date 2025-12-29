@@ -14,6 +14,20 @@ import { StatCard } from "@/components/ui/StatCard"
 import { BookOpen, BookOpenCheck, Calendar, Flame, Target } from "lucide-react"
 import dynamic from "next/dynamic"
 
+// Performance optimization: Preload critical components
+useEffect(() => {
+  // Preload critical API routes
+  const preloadRoutes = async () => {
+    try {
+      // Preload reading trends data
+      fetch('/api/reading-trends?period=30').catch(() => {})
+    } catch (error) {
+      // Ignore preload errors
+    }
+  }
+  preloadRoutes()
+}, [])
+
 const ReadingTrendsChartLazy = dynamic(
   () => import("./ReadingTrendsChart").then((mod) => ({ default: mod.ReadingTrendsChart })),
   {
@@ -136,10 +150,11 @@ export function DashboardClient({
       <section className="space-y-6">
         <h2 className="serif-heading text-2xl font-semibold text-[color:var(--text)]">Reading Activity</h2>
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="min-h-[400px]">
+          {/* Performance: Fixed height containers prevent CLS */}
+          <div className="h-[400px] flex flex-col">
             <ReadingTrendsChartLazy />
           </div>
-          <div className="min-h-[400px]">
+          <div className="h-[400px] flex flex-col">
             <QuickReadingLog books={books} onLogAdded={refreshData} />
           </div>
         </div>

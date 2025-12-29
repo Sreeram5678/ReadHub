@@ -35,16 +35,24 @@ export function ReadingTrendsChart({ userId }: ReadingTrendsChartProps) {
   const [data, setData] = useState<ReadingTrend[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Performance optimization: Debounce period changes
+  const [debouncedPeriod, setDebouncedPeriod] = useState("30")
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPeriod(period), 300)
+    return () => clearTimeout(timer)
+  }, [period])
+
   useEffect(() => {
     fetchTrendsData()
-  }, [period, userId])
+  }, [debouncedPeriod, userId])
 
   const fetchTrendsData = async () => {
     setLoading(true)
     try {
       const url = userId
-        ? `/api/reading-trends?period=${period}&userId=${userId}`
-        : `/api/reading-trends?period=${period}`
+        ? `/api/reading-trends?period=${debouncedPeriod}&userId=${userId}`
+        : `/api/reading-trends?period=${debouncedPeriod}`
       const response = await fetch(url)
       if (response.ok) {
         const trendsData = await response.json()

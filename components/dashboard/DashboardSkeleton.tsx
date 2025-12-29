@@ -40,13 +40,14 @@ export function DashboardSkeleton() {
         ))}
       </div>
 
+      {/* Reading Trends Chart Skeleton - exact dimensions to prevent CLS */}
       <Card>
         <CardHeader>
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-4 w-48 mt-2" />
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full" />
+          <Skeleton className="h-[320px] w-full rounded-lg" />
         </CardContent>
       </Card>
 
