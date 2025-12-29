@@ -8,8 +8,8 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
-// Revalidate every 5 minutes to balance freshness with performance
-export const revalidate = 300;
+// Use ISR with 2 minute revalidation for better performance
+export const revalidate = 120;
 
 const now = Date.now()
 const ninetyDaysAgo = new Date(now - 90 * 24 * 60 * 60 * 1000)

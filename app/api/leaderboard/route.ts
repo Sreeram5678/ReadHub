@@ -91,36 +91,39 @@ export async function GET(request: Request) {
       userIds = selectedUserIds.length > 0 ? selectedUserIds : userIds
     }
 
-    // Single optimized query to get all user data with reading logs
-    const usersWithLogs = await db.user.findMany({
-      where: {
-        id: { in: userIds },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        _count: {
-          select: {
-            books: true,
-          },
-        },
-        readingLogs: {
-          where: startDate || endDate ? {
-            date: {
-              ...(startDate && { gte: startDate }),
-              ...(endDate && { lte: endDate }),
-            },
-          } : {},
-          select: {
-            date: true,
-            pagesRead: true,
-          },
-          orderBy: { date: 'desc' },
-        },
-      },
-    })
+    // Use raw SQL for better performance on complex leaderboard queries
+    const startDateStr = startDate ? startDate.toISOString() : null
+    const endDateStr = endDate ? endDate.toISOString() : null
+
+    const leaderboardData = await db.$queryRaw`
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.image,
+        COUNT(DISTINCT b.id) as book_count,
+        COALESCE(SUM(CASE
+          WHEN ${startDateStr}::timestamp IS NULL OR rl.date >= ${startDateStr}::timestamp
+          AND (${endDateStr}::timestamp IS NULL OR rl.date <= ${endDateStr}::timestamp)
+          THEN rl.pages_read
+          ELSE 0
+        END), 0) as total_pages
+      FROM "User" u
+      LEFT JOIN "Book" b ON b.user_id = u.id
+      LEFT JOIN "ReadingLog" rl ON rl.user_id = u.id
+        AND (${startDateStr}::timestamp IS NULL OR rl.date >= ${startDateStr}::timestamp)
+        AND (${endDateStr}::timestamp IS NULL OR rl.date <= ${endDateStr}::timestamp)
+      WHERE u.id = ANY(${userIds})
+      GROUP BY u.id, u.name, u.email, u.image
+      ORDER BY total_pages DESC
+    ` as Array<{
+      id: string
+      name: string | null
+      email: string
+      image: string | null
+      book_count: bigint
+      total_pages: bigint
+    }>
 
     // Get user timezones in a single batch query
     const userTimezones = await Promise.all(
@@ -129,53 +132,54 @@ export async function GET(request: Request) {
     const timezoneMap = new Map(userIds.map((id, index) => [id, userTimezones[index]]))
 
     // Calculate metrics for each user in memory (much faster)
-    const userData = usersWithLogs.map((user) => {
-      const totalPages = user.readingLogs.reduce((sum, log) => sum + (log.pagesRead || 0), 0)
+    const userData = await Promise.all(leaderboardData.map(async (user) => {
+      const totalPages = Number(user.total_pages)
       const userTz = timezoneMap.get(user.id) || userTimezone
 
-      // Calculate period range for average daily
-      let periodRangeDays = 1
-      if (period === "all-time") {
-        if (user.readingLogs.length > 0) {
-          const firstLogDate = user.readingLogs[user.readingLogs.length - 1].date
-          const today = getTodayInTimezone(userTz)
-          periodRangeDays = Math.ceil((today.getTime() - firstLogDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-        }
-      } else {
-        const periodEnd = endDate || getTodayInTimezone(userTz)
-        const periodStart = startDate || (user.readingLogs.length > 0 ? user.readingLogs[user.readingLogs.length - 1].date : periodEnd)
-        periodRangeDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      // For average daily calculation, we need reading day count
+      // Use raw SQL to get reading days for the period
+      let readingDays = 1
+      let averageDaily = totalPages
+
+      if (sortBy === 'speed' || period !== 'all-time') {
+        // Only calculate expensive metrics when needed
+        const readingDaysResult = await db.$queryRaw`
+          SELECT COUNT(DISTINCT DATE(rl.date)) as reading_days
+          FROM "ReadingLog" rl
+          WHERE rl.user_id = ${user.id}
+          AND (${startDateStr}::timestamp IS NULL OR rl.date >= ${startDateStr}::timestamp)
+          AND (${endDateStr}::timestamp IS NULL OR rl.date <= ${endDateStr}::timestamp)
+        ` as Array<{ reading_days: bigint }>
+
+        readingDays = Number(readingDaysResult[0]?.reading_days || 1)
+        averageDaily = readingDays > 0 ? totalPages / readingDays : totalPages
       }
-      periodRangeDays = Math.max(periodRangeDays, 1)
 
-      const readingDays = new Set(user.readingLogs.map(log => log.date.toDateString())).size
-      const averageDaily = periodRangeDays > 0 ? totalPages / periodRangeDays : 0
-
-      // For streak calculation, we need all logs - do a separate query per user
-      // This is still needed but much less frequent now
-      const currentStreak = sortBy === 'streak' ? calculateStreakSync(user.readingLogs, userTz) : 0
+      // Calculate current streak only when sorting by streak
+      let currentStreak = 0
+      if (sortBy === 'streak') {
+        // Get all reading logs for streak calculation
+        const allLogs = await db.readingLog.findMany({
+          where: { userId: user.id },
+          select: { date: true, pagesRead: true },
+          orderBy: { date: 'desc' },
+        })
+        currentStreak = calculateStreakSync(allLogs, userTz)
+      }
 
       return {
-        userId: user.id,
-        totalPages,
-        averageDaily,
-        currentStreak,
-        readingDays,
-        user,
-      }
-    })
-
-    const leaderboard = userData
-      .map(({ user, totalPages, averageDaily, currentStreak }) => ({
         id: user.id,
         name: user.name || user.email,
         email: user.email,
         image: user.image,
         totalPages,
-        bookCount: user._count.books,
+        bookCount: Number(user.book_count),
         averageDaily,
         currentStreak,
-      }))
+      }
+    }))
+
+    const leaderboard = userData
       .filter((user) => {
         // Always include current user, even if they have 0 pages/metrics
         if (user.id === userId) {

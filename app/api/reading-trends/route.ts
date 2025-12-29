@@ -72,7 +72,11 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime()) // Ensure chronological order
 
-    return NextResponse.json(trendsData)
+    return NextResponse.json(trendsData, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=300', // 3 min cache
+      },
+    })
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch reading trends data" },

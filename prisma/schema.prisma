@@ -155,6 +155,8 @@ model ReadingLog {
   @@index([bookId])
   @@index([date])
   @@index([userId, date])
+  @@index([userId, pagesRead])
+  @@index([date, userId])
 }
 
 model Friendship {

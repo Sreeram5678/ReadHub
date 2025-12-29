@@ -6,9 +6,8 @@ import { Prisma } from "@prisma/client"
 import { getUserTimezone } from "@/lib/user-timezone"
 import { getTodayInTimezone } from "@/lib/timezone"
 
-// This page reads session (uses headers/cookies), so force dynamic rendering
-export const dynamic = "force-dynamic"
-export const revalidate = 0
+// Use ISR with 5 minute revalidation for better performance
+export const revalidate = 300
 
 async function getLeaderboard(
   period: string,
